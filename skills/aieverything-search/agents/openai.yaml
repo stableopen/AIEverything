@@ -1,0 +1,4 @@
+interface:
+  display_name: "AIEverything Search"
+  short_description: "Search local files through the desktop app"
+  default_prompt: "Use $aieverything-search to find relevant local files and document content."

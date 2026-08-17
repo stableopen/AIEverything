@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RootNamespace>AIEverything.App</RootNamespace>
+    <AssemblyName>AIEverything</AssemblyName>
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <ApplicationIcon>Assets\AIEverything.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AIEverything.Desktop\AIEverything.Desktop.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\AIEverything.ico" />
+    <None Include="..\..\vendor\everything-sdk\Everything64.dll"
+          Link="Everything64.dll"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
+    <None Include="..\..\vendor\everything-engine\Everything.exe"
+          Link="EverythingEngine\Everything.exe"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
+    <None Include="..\..\vendor\everything-engine\Everything.ini"
+          Link="EverythingEngine\Everything.ini"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
+    <None Include="..\..\vendor\everything-engine\LICENSE.txt"
+          Link="EverythingEngine\LICENSE.txt"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\AIEverything.Desktop\Models\mmarco-mMiniLMv2-L12-H384-v1\**\*"
+             Link="Models\mmarco-mMiniLMv2-L12-H384-v1\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest"
+             ExcludeFromSingleFile="true" />
+    <None Include="$(NuGetPackageRoot)microsoft.ml.onnxruntime\1.29.0\LICENSE"
+          Link="licenses\Microsoft.ML.OnnxRuntime\LICENSE.txt"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
+    <None Include="$(NuGetPackageRoot)microsoft.ml.onnxruntime\1.29.0\ThirdPartyNotices.txt"
+          Link="licenses\Microsoft.ML.OnnxRuntime\ThirdPartyNotices.txt"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
+    <None Include="$(NuGetPackageRoot)microsoft.ml.tokenizers\2.0.0\LICENSE"
+          Link="licenses\Microsoft.ML.Tokenizers\LICENSE.txt"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
+    <None Include="$(NuGetPackageRoot)microsoft.ml.tokenizers\2.0.0\THIRD-PARTY-NOTICES.TXT"
+          Link="licenses\Microsoft.ML.Tokenizers\THIRD-PARTY-NOTICES.txt"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
+  "revision": "1427fd652930e4ba29e8149678df786c240d8825",
+  "license": "Apache-2.0",
+  "source": "https://huggingface.co/cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
+  "files": [
+    {
+      "path": "model_quint8_avx2.onnx",
+      "bytes": 118620016,
+      "sha256": "6C2513767FB63D008A4377BEF7A7A3555433D9436342BB53E35A3A72FFC52D4B"
+    },
+    {
+      "path": "sentencepiece.bpe.model",
+      "bytes": 5069051,
+      "sha256": "CFC8146ABE2A0488E9E2A0C56DE7952F7C11AB059ECA145A0A727AFCE0DB2865"
+    },
+    {
+      "path": "config.json",
+      "bytes": 891,
+      "sha256": "CC2CFE51AA3FD759D21D21ACF5DFD6994AA67A3C9210636D22E143699D336C77"
+    },
+    {
+      "path": "tokenizer_config.json",
+      "bytes": 435,
+      "sha256": "E7FBFBFA6347B4E414C1CEE50D142E2C2F9A895DAD68B068AE83A8B564C3837E"
+    },
+    {
+      "path": "special_tokens_map.json",
+      "bytes": 239,
+      "sha256": "378EB3BF733EB16E65792D7E3FDA5B8A4631387CA04D2015199C4D4F22AE554D"
+    },
+    {
+      "path": "MODEL_CARD.md",
+      "bytes": 2278,
+      "sha256": "474736A65D6393A060119A8DC304563AF67AF4D8D86CCFEE4A05DD0DF107FC11"
+    },
+    {
+      "path": "LICENSE.apache-2.0.txt",
+      "bytes": 11357,
+      "sha256": "C71D239DF91726FC519C6EB72D318EC65820627232B2F796219E87DCF35D0AB4"
+    },
+    {
+      "path": "model-calibration.json",
+      "bytes": 915,
+      "sha256": "A188F75C2AE3B2B2827909B76A386D7508A6F473F95CCBB8977AB5D5E33F92F3"
+    }
+  ]
+}

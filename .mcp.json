@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "aieverything": {
+      "command": "./dist/agent-connector/win-x64/AIEverything.Server.exe",
+      "args": ["serve"],
+      "cwd": "."
+    }
+  }
+}

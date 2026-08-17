@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "model": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
+  "revision": "1427fd652930e4ba29e8149678df786c240d8825",
+  "tokenizer": "XLMRobertaTokenizer",
+  "pair_layout": "<s> query </s></s> candidate </s>",
+  "maximum_sequence_length": 192,
+  "maximum_query_tokens": 48,
+  "batch_candidate_limit": 10,
+  "score_activation": "identity",
+  "deepseek_low_confidence_gap_ratio": 0.15,
+  "runtime": {
+    "onnxruntime_version": "1.29.0",
+    "execution_mode": "sequential",
+    "inter_op_threads": 1,
+    "intra_op_threads_maximum": 4,
+    "requires_x64": true,
+    "requires_avx2": true
+  },
+  "latency_budget_ms": {
+    "warm_top10_p95_target": 250,
+    "hard_timeout": 400
+  },
+  "validation_measurement": {
+    "date": "2026-08-14",
+    "platform": "Windows x64 AVX2 validation host",
+    "warm_top10_samples": 12,
+    "p95_ms": 174.3,
+    "maximum_ms": 174.3,
+    "minimum_ms": 136.7
+  }
+}

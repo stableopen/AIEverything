@@ -1,0 +1,9 @@
+* text=auto
+
+# Frozen model assets are byte-verified by model-manifest.json.
+/src/AIEverything.Desktop/Models/mmarco-mMiniLMv2-L12-H384-v1/** -text
+
+*.png binary
+*.ico binary
+*.dll binary
+*.exe binary

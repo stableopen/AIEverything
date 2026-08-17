@@ -1,0 +1,36 @@
+{
+  "name": "aieverything",
+  "version": "1.0.0",
+  "description": "Optional read-only Agent connector for the AIEverything Windows app.",
+  "author": {
+    "name": "Wade"
+  },
+  "license": "MIT",
+  "keywords": [
+    "everything",
+    "local-search",
+    "files",
+    "content-search",
+    "document-search",
+    "mcp",
+    "windows"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "AIEverything",
+    "shortDescription": "Optional connector for the AIEverything desktop app",
+    "longDescription": "Connect an Agent to an independently installed AIEverything 1.0.0 desktop app. Search filenames through Everything and the existing local TXT/MD/MARKDOWN body index without changing files or index settings.",
+    "developerName": "Wade",
+    "category": "Productivity",
+    "capabilities": [
+      "Read"
+    ],
+    "defaultPrompt": [
+      "Find the five most recently modified Markdown files in this project.",
+      "Search indexed TXT and Markdown content for the phrase architecture decision.",
+      "Find both filenames and indexed text bodies matching benchmark."
+    ],
+    "brandColor": "#2563EB"
+  }
+}

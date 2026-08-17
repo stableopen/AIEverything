@@ -1,0 +1,39 @@
+# Build and test output
+**/bin/
+**/obj/
+TestResults/
+/dist/
+*.user
+*.suo
+*.pdb
+
+# Local IDE and OS state
+.vs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local product data and diagnostics
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.log
+*.dmp
+
+# Credentials and machine-local configuration
+.env
+.env.*
+!.env.example
+*.pfx
+*.snk
+*.key
+
+# Codex/project delivery context is intentionally private
+/.codex/
+
+# Downloaded separately from the frozen Hugging Face revision
+/src/AIEverything.Desktop/Models/mmarco-mMiniLMv2-L12-H384-v1/model_quint8_avx2.onnx
+/src/AIEverything.Desktop/Models/mmarco-mMiniLMv2-L12-H384-v1/*.download-*.tmp
