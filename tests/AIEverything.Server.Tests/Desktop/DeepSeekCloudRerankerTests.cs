@@ -55,7 +55,7 @@ public sealed class DeepSeekCloudRerankerTests
             Assert.Equal(2, messages.GetArrayLength());
             Assert.Contains("untrusted data", messages[0].GetProperty("content").GetString(),
                 StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("match_source", messages[0].GetProperty("content").GetString(),
+            Assert.DoesNotContain("match_source", messages[0].GetProperty("content").GetString(),
                 StringComparison.Ordinal);
             Assert.Contains("top5_ids", messages[0].GetProperty("content").GetString(),
                 StringComparison.Ordinal);
@@ -67,9 +67,9 @@ public sealed class DeepSeekCloudRerankerTests
             Assert.Equal("one.md", candidates[0].GetProperty("name").GetString());
             Assert.Equal(@"D:\docs\one.md", candidates[0].GetProperty("full_path").GetString());
             Assert.Equal("short snippet", candidates[0].GetProperty("snippet").GetString());
-            Assert.Equal("name", candidates[0].GetProperty("match_source").GetString());
-            Assert.Equal("content", candidates[1].GetProperty("match_source").GetString());
-            Assert.Equal("both", candidates[2].GetProperty("match_source").GetString());
+            Assert.False(candidates[0].TryGetProperty("match_source", out _));
+            Assert.False(candidates[1].TryGetProperty("match_source", out _));
+            Assert.False(candidates[2].TryGetProperty("match_source", out _));
             Assert.False(candidates[0].TryGetProperty("protected_tier", out _));
         }
     }

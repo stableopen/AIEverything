@@ -149,8 +149,7 @@ public sealed class DesktopRankingCoordinator
             localOrder,
             "\u672c\u5730\u8bed\u4e49\u5339\u914d");
 
-        if (!options.DeepSeekEnabled || !options.DeepSeekDisclosureAccepted ||
-            !ShouldUseCloud(immediate.Query, candidates, local.Scores))
+        if (!options.DeepSeekEnabled || !ShouldUseCloud(immediate.Query, candidates, local.Scores))
         {
             return OrdersEqual(immediate.Items, localResponse.Items) ? null : localResponse;
         }

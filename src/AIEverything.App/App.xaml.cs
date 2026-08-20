@@ -9,6 +9,7 @@ public partial class App : Application
 {
     private const string WindowTitle = "AIEverything";
     private const string PromotionScreenshotFlag = "--render-promotion-screenshot";
+    private const string EmptyScreenshotFlag = "--empty";
     private Mutex? _instanceMutex;
     private bool _ownsInstanceMutex;
 
@@ -19,7 +20,9 @@ public partial class App : Application
         {
             ShutdownMode = ShutdownMode.OnExplicitShutdown;
             base.OnStartup(e);
-            if (e.Args.Length != 2 ||
+            var renderEmpty = e.Args.Length == 3 &&
+                              string.Equals(e.Args[2], EmptyScreenshotFlag, StringComparison.Ordinal);
+            if ((e.Args.Length != 2 && !renderEmpty) ||
                 !Path.IsPathFullyQualified(e.Args[1]) ||
                 !string.Equals(Path.GetExtension(e.Args[1]), ".png", StringComparison.OrdinalIgnoreCase))
             {
@@ -29,7 +32,7 @@ public partial class App : Application
 
             try
             {
-                PromotionScreenshotRenderer.Render(Path.GetFullPath(e.Args[1]));
+                PromotionScreenshotRenderer.Render(Path.GetFullPath(e.Args[1]), renderEmpty);
                 Shutdown(0);
             }
             catch

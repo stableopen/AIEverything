@@ -34,7 +34,7 @@ public sealed record RankingOptions(
     bool DeepSeekEnabled,
     bool DeepSeekDisclosureAccepted)
 {
-    public static RankingOptions Default { get; } = new(true, true, false, false);
+    public static RankingOptions Default { get; } = new(true, true, true, true);
 }
 
 public sealed record RankingIdentity(string FullPath, string Extension);

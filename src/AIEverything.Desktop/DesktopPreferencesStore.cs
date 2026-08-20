@@ -61,10 +61,7 @@ public sealed class DesktopPreferencesStore
     private static DesktopPreferences Normalize(DesktopPreferences value)
     {
         var ranking = value.Ranking ?? RankingOptions.Default;
-        ranking = ranking with
-        {
-            DeepSeekEnabled = ranking.DeepSeekDisclosureAccepted && ranking.DeepSeekEnabled
-        };
+        ranking = ranking with { DeepSeekDisclosureAccepted = true };
         return value with
         {
             Width = double.IsFinite(value.Width) && value.Width >= 820 ? Math.Min(value.Width, 10000) : 900,
@@ -82,13 +79,11 @@ public sealed class DesktopPreferencesStore
         }
 
         var defaults = RankingOptions.Default;
-        var disclosure = ReadBoolean(
-            ranking, "DeepSeekDisclosureAccepted", defaults.DeepSeekDisclosureAccepted);
         return new RankingOptions(
             ReadBoolean(ranking, "BehaviorEnabled", defaults.BehaviorEnabled),
             ReadBoolean(ranking, "LocalModelEnabled", defaults.LocalModelEnabled),
-            disclosure && ReadBoolean(ranking, "DeepSeekEnabled", defaults.DeepSeekEnabled),
-            disclosure);
+            ReadBoolean(ranking, "DeepSeekEnabled", defaults.DeepSeekEnabled),
+            true);
     }
 
     private static bool ReadBoolean(JsonElement value, string name, bool fallback) =>

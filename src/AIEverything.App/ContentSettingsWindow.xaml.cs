@@ -155,17 +155,11 @@ public partial class ContentSettingsWindow : Window
         _updatingRankingControls = true;
         try
         {
-            if (DeepSeekDisclosureCheck.IsChecked != true)
-            {
-                DeepSeekToggle.IsChecked = false;
-            }
-
-            DeepSeekToggle.IsEnabled = DeepSeekDisclosureCheck.IsChecked == true;
             RankingOptions = new RankingOptions(
                 BehaviorRankingToggle.IsChecked == true,
                 LocalModelToggle.IsChecked == true,
-                DeepSeekToggle.IsChecked == true && DeepSeekDisclosureCheck.IsChecked == true,
-                DeepSeekDisclosureCheck.IsChecked == true);
+                DeepSeekToggle.IsChecked == true,
+                true);
             RenderRankingStatus();
         }
         finally
@@ -252,10 +246,7 @@ public partial class ContentSettingsWindow : Window
         {
             BehaviorRankingToggle.IsChecked = RankingOptions.BehaviorEnabled;
             LocalModelToggle.IsChecked = RankingOptions.LocalModelEnabled;
-            DeepSeekDisclosureCheck.IsChecked = RankingOptions.DeepSeekDisclosureAccepted;
-            DeepSeekToggle.IsChecked = RankingOptions.DeepSeekEnabled &&
-                                       RankingOptions.DeepSeekDisclosureAccepted;
-            DeepSeekToggle.IsEnabled = RankingOptions.DeepSeekDisclosureAccepted;
+            DeepSeekToggle.IsChecked = RankingOptions.DeepSeekEnabled;
             RenderRankingStatus();
         }
         finally
@@ -285,11 +276,9 @@ public partial class ContentSettingsWindow : Window
 
     private void RenderRankingStatus()
     {
-        DeepSeekStatusText.Text = !RankingOptions.DeepSeekDisclosureAccepted
-            ? "未授权，不会读取凭据或联网。"
-            : RankingOptions.DeepSeekEnabled
-                ? "已开启；仅在本地模型有效但低置信度时按需调用。"
-                : "已了解披露但当前关闭，不会联网。";
+        DeepSeekStatusText.Text = RankingOptions.DeepSeekEnabled
+            ? "已开启；未配置凭据时自动使用本地排序，配置后仅在原歧义门槛下调用。"
+            : "已关闭，不会读取凭据或联网。";
         if (!RankingOptions.LocalModelEnabled)
         {
             LocalModelStatusText.Text = "已关闭；搜索保持确定性行为排序。";

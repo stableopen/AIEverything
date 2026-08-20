@@ -31,7 +31,7 @@ public sealed class DesktopPreferencesStoreTests : IDisposable
     }
 
     [Fact]
-    public void DeepSeek_cannot_be_restored_enabled_without_accepted_disclosure()
+    public void DeepSeek_default_enablement_does_not_require_a_homepage_disclosure_gate()
     {
         var path = Path.Combine(_directory, "settings.json");
         var store = new DesktopPreferencesStore(path);
@@ -45,8 +45,8 @@ public sealed class DesktopPreferencesStoreTests : IDisposable
 
         Assert.False(loaded.Ranking.BehaviorEnabled);
         Assert.False(loaded.Ranking.LocalModelEnabled);
-        Assert.False(loaded.Ranking.DeepSeekDisclosureAccepted);
-        Assert.False(loaded.Ranking.DeepSeekEnabled);
+        Assert.True(loaded.Ranking.DeepSeekDisclosureAccepted);
+        Assert.True(loaded.Ranking.DeepSeekEnabled);
     }
 
     [Fact]

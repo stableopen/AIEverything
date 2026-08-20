@@ -21,7 +21,7 @@ public sealed class PluginContractTests
         Assert.Contains(".markdown", readme);
         Assert.Contains("未单独加密", readme);
         Assert.Contains("5 MiB", readme);
-        Assert.Contains("DeepSeek 默认关闭", readme);
+        Assert.Contains("DeepSeek 默认启用", readme);
         Assert.Contains("不是 voidtools 官方产品", readme);
 
         using var manifest = System.Text.Json.JsonDocument.Parse(

@@ -61,9 +61,6 @@ public partial class MainWindow : Window
         _preferences = new DesktopPreferencesStore(Path.Combine(localDataRoot, "settings.json"));
         _currentPreferences = _preferences.Load();
         _rankingOptions = _currentPreferences.Ranking;
-        BehaviorDisclosureBanner.Visibility = _currentPreferences.BehaviorDisclosureAcknowledged
-            ? Visibility.Collapsed
-            : Visibility.Visible;
         _behaviorStore = new SqliteRankingBehaviorStore(Path.Combine(localDataRoot, "ranking.db"));
         _localModel = new OnnxCrossEncoderReranker(OnnxCrossEncoderReranker.DefaultAssetRoot);
         _deepSeekHttpClient = new HttpClient();
@@ -190,9 +187,6 @@ public partial class MainWindow : Window
         _results.Clear();
         ResultsGrid.SelectedItem = null;
         ResultsHeader.Visibility = Visibility.Collapsed;
-        EmptyPanel.Visibility = Visibility.Visible;
-        EmptyTitle.Text = $"正在搜索“{query}”";
-        EmptyHint.Text = "正在获取本次查询结果…";
         SetQueryStatus($"正在搜索“{query}”…");
         UpdateActions();
         try
@@ -220,12 +214,6 @@ public partial class MainWindow : Window
             if (!_rankingGate.IsCurrent(lease, SearchBox.Text, GetMode())) return;
             _results.Clear();
             ResultsHeader.Visibility = Visibility.Collapsed;
-            EmptyPanel.Visibility = Visibility.Visible;
-            var source = mode == DesktopSearchMode.Content ? "正文服务" : "文件名引擎";
-            EmptyTitle.Text = $"{source}搜索失败";
-            EmptyHint.Text = mode == DesktopSearchMode.Content
-                ? "请在设置中确认正文已启用并重试；文件名搜索仍可使用。"
-                : "请稍后重试，或确认 Everything 文件名引擎已就绪。";
             SetQueryStatus($"“{query}”搜索失败：{exception.Message}");
             UpdateActions();
         }
@@ -249,12 +237,7 @@ public partial class MainWindow : Window
             _renderingResults = false;
         }
 
-        EmptyPanel.Visibility = _results.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
         ResultsHeader.Visibility = _results.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
-        EmptyTitle.Text = _results.Count == 0 ? $"没有找到“{query}”" : string.Empty;
-        EmptyHint.Text = _results.Count == 0
-            ? "试试更短的关键词，或切换“文件名 / 正文”范围"
-            : string.Empty;
         var rankingStatus = enhanced ? " · 智能排序推荐" : string.Empty;
         SetQueryStatus(response.TotalResults == 0
             ? "找到 0 项"
@@ -281,9 +264,6 @@ public partial class MainWindow : Window
     {
         _results.Clear();
         ResultsHeader.Visibility = Visibility.Collapsed;
-        EmptyPanel.Visibility = Visibility.Visible;
-        EmptyTitle.Text = "输入关键词开始搜索";
-        EmptyHint.Text = "查找文件名和路径，或定位 TXT、Markdown 中的具体段落";
         if (_contentStatus is null) SetQueryStatus("找到 0 项");
         else RenderContentStatus(_contentStatus);
         UpdateActions();
@@ -386,50 +366,6 @@ public partial class MainWindow : Window
             await RefreshStatusAsync();
         }
         catch (Exception exception) { SetQueryStatus($"设置失败：{exception.Message}"); }
-    }
-
-    private void BehaviorSettingsButton_Click(object sender, RoutedEventArgs e) =>
-        SettingsButton_Click(sender, e);
-
-    private void AcknowledgeBehaviorButton_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            _currentPreferences = _currentPreferences with
-            {
-                BehaviorDisclosureAcknowledged = true
-            };
-            _preferences.Save(_currentPreferences);
-            BehaviorDisclosureBanner.Visibility = Visibility.Collapsed;
-        }
-        catch (Exception exception)
-        {
-            SetQueryStatus($"保存行为学习选择失败：{exception.Message}");
-        }
-    }
-
-    private async void DisableBehaviorButton_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            _rankingOptions = _rankingOptions with { BehaviorEnabled = false };
-            _currentPreferences = _currentPreferences with
-            {
-                Ranking = _rankingOptions,
-                BehaviorDisclosureAcknowledged = true
-            };
-            _preferences.Save(_currentPreferences);
-            BehaviorDisclosureBanner.Visibility = Visibility.Collapsed;
-            InvalidatePendingSearch();
-            if (!string.IsNullOrWhiteSpace(SearchBox.Text))
-            {
-                await SearchAsync();
-            }
-        }
-        catch (Exception exception)
-        {
-            SetQueryStatus($"关闭行为学习失败：{exception.Message}");
-        }
     }
 
     private async void EnableContentButton_Click(object sender, RoutedEventArgs e)

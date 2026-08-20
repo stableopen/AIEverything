@@ -173,24 +173,19 @@
 
             <Border Style="{StaticResource CardStyle}" Padding="15,13" Margin="0,12,0,0">
                 <StackPanel>
-                    <CheckBox x:Name="DeepSeekDisclosureCheck"
-                              AutomationProperties.AutomationId="DeepSeekDisclosureCheck"
-                              Content="我了解以下 DeepSeek 外发边界"
-                              Checked="RankingSetting_Changed"
-                              Unchecked="RankingSetting_Changed" />
                     <TextBlock AutomationProperties.AutomationId="DeepSeekDisclosureText"
-                               Text="仅在本地 ONNX 成功、无精确匹配且至少有 3 个普通候选，并出现分数接近、重名、名称/正文混合证据或自然语言歧义时才可能发送；明确文件名或路径查询绝不联网。发送当前查询、最多 10 个候选的文件名、完整路径和每项最多 200 字片段，由 DeepSeek 只选 Top5；不发送匹配来源、排序层级、文件本体或行为历史。"
-                               Margin="22,6,0,0" Foreground="{StaticResource MutedTextBrush}"
+                               Text="DeepSeek 默认启用。仅在本地 ONNX 成功、无精确匹配且至少有 3 个普通候选，并出现分数接近、重名、名称/正文混合证据或自然语言歧义时才可能发送；明确文件名或路径查询绝不联网。发送当前查询、最多 10 个候选的文件名、完整路径和每项最多 200 字片段，由 DeepSeek 只选 Top5；不发送匹配来源、排序层级、文件本体或行为历史。"
+                               Foreground="{StaticResource MutedTextBrush}"
                                TextWrapping="Wrap" />
                     <CheckBox x:Name="DeepSeekToggle"
                               AutomationProperties.AutomationId="DeepSeekToggle"
-                              Content="启用 DeepSeek 歧义重排（默认关闭）"
-                              Margin="22,10,0,0"
+                              Content="启用 DeepSeek 歧义重排（默认开启）"
+                              Margin="0,10,0,0"
                               Checked="RankingSetting_Changed"
                               Unchecked="RankingSetting_Changed" />
                     <TextBlock x:Name="DeepSeekStatusText"
                                AutomationProperties.AutomationId="DeepSeekStatusText"
-                               Text="未授权，不会读取凭据或联网。" Margin="22,6,0,0"
+                               Text="已开启；未配置凭据时自动使用本地排序。" Margin="22,6,0,0"
                                Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" />
                     <TextBlock Text="总预算 1.5 秒，请求体不超过 24 KiB；单并发、滚动每分钟最多 10 次、会话缓存 10 分钟，限流或连续服务失败会熔断 30 秒且不重试。"
                                Margin="22,6,0,0" Foreground="{StaticResource MutedTextBrush}"
