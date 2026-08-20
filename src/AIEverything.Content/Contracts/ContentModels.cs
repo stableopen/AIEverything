@@ -78,8 +78,8 @@ public sealed record ContentIndexFailure(
 
 public static class ContentServiceCompatibility
 {
-    public const string ProtocolVersion = "5";
-    public const string TextExtractionRevision = "machine-source-location-v1";
+    public const string ProtocolVersion = "6";
+    public const string TextExtractionRevision = "machine-docx-blocks-v1";
 
     public static bool IsCompatible(ContentIndexStatus status) =>
         string.Equals(

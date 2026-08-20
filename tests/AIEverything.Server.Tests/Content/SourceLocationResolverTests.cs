@@ -1,9 +1,27 @@
 using AIEverything.Content.Text;
+using AIEverything.Content.Extraction;
 
 namespace AIEverything.Server.Tests.Content;
 
 public sealed class SourceLocationResolverTests
 {
+    [Fact]
+    public void Docx_returns_structured_heading_and_location_label()
+    {
+        var blocks = new[]
+        {
+            new ExtractedTextBlock(1, "Sales Plan", "Sales Plan · heading 1", "Sales Plan"),
+            new ExtractedTextBlock(2, "regional target is rising", "Sales Plan · paragraph 4", "Sales Plan")
+        };
+
+        var hit = Assert.Single(SourceLocationResolver.Resolve(
+            "Sales Plan\nregional target is rising", "docx", ["regional", "target"], blocks));
+
+        Assert.Equal("Sales Plan · paragraph 4", hit.LocationLabel);
+        Assert.Equal("Sales Plan", hit.HeadingPath);
+        Assert.Contains("regional target", hit.Snippet, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void Txt_returns_accurate_line_range_and_multiple_hits()
     {

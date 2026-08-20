@@ -76,6 +76,35 @@ public sealed class MachineSnapshotStoreTests : IAsyncLifetime
         Assert.Equal(0, (await _store.GetStatusAsync(CancellationToken.None)).IndexedDocuments);
     }
 
+    [Fact]
+    public async Task Search_reopens_persisted_docx_location_map()
+    {
+        var path = Write("plan.docx", "placeholder");
+        var candidate = FileCandidate.FromFile(path, priority: 0) with
+        {
+            Extension = "docx",
+            MaxBytes = 10 * 1024 * 1024
+        };
+        await _store.EnqueueAsync(candidate, CancellationToken.None);
+        var lease = Assert.IsType<QueueLease>(await _store.LeaseNextAsync(CancellationToken.None));
+        var blocks = new[]
+        {
+            new ExtractedTextBlock(1, "Sales Plan", "Sales Plan · heading 1", "Sales Plan"),
+            new ExtractedTextBlock(2, "regional target is rising", "Sales Plan · paragraph 4", "Sales Plan")
+        };
+        await _store.CompleteAsync(
+            lease,
+            new ExtractionResult("Sales Plan\nregional target is rising", false, 41, blocks),
+            CancellationToken.None);
+
+        var response = await _store.SearchAsync(
+            new ContentSearchRequest("regional target"), CancellationToken.None);
+
+        var item = Assert.Single(response.Items);
+        Assert.Equal("Sales Plan · paragraph 4", item.LocationLabel);
+        Assert.Equal("Sales Plan", item.HeadingPath);
+    }
+
     private async Task CommitAndProcessAsync(params string[] paths)
     {
         var scan = await _store.BeginCandidateScanAsync(CancellationToken.None);
