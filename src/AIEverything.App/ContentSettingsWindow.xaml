@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         AutomationProperties.AutomationId="ContentSettingsWindow"
         Title="本机搜索设置"
-        Width="520" Height="650"
+        Width="560" Height="760"
         ResizeMode="NoResize" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner">
     <Grid Background="{StaticResource CanvasBrush}">
@@ -137,6 +137,44 @@
                        Text="正文索引只保存在本机 SQLite 数据库中，未单独加密且不会修改源文件；可选 DeepSeek 的片段外发需在下方另行授权。"
                        Margin="2,11,2,0" Foreground="{StaticResource MutedTextBrush}"
                        TextWrapping="Wrap" />
+
+            <TextBlock Text="Outlook 邮件" FontSize="14" FontWeight="SemiBold" Margin="2,18,0,8" />
+            <Border Style="{StaticResource CardStyle}" Padding="15,13">
+                <StackPanel>
+                    <TextBlock x:Name="MailStatusText"
+                               AutomationProperties.AutomationId="MailStatusText"
+                               Text="默认开启" FontWeight="SemiBold" />
+                    <TextBlock x:Name="MailDetailText"
+                               AutomationProperties.AutomationId="MailDetailText"
+                               Text="启动后自动只读同步 Classic Outlook 默认收件箱和已发送中最近 100 封邮件。"
+                               Margin="0,6,0,0" Foreground="{StaticResource MutedTextBrush}"
+                               TextWrapping="Wrap" />
+                    <WrapPanel Margin="0,11,0,0">
+                        <Button x:Name="MailEnableSyncButton"
+                                AutomationProperties.AutomationId="MailEnableSyncButton"
+                                Content="开启并同步" Style="{StaticResource PrimaryButtonStyle}"
+                                Click="MailEnableSyncButton_Click" />
+                        <Button x:Name="MailSyncButton"
+                                AutomationProperties.AutomationId="MailSyncButton"
+                                Content="立即同步" Margin="8,0,0,0"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Click="MailSyncButton_Click" />
+                        <Button x:Name="MailDisableButton"
+                                AutomationProperties.AutomationId="MailDisableButton"
+                                Content="关闭" Margin="8,0,0,0"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Click="MailDisableButton_Click" />
+                        <Button x:Name="MailClearButton"
+                                AutomationProperties.AutomationId="MailClearButton"
+                                Content="清除本地索引" Margin="8,0,0,0"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Click="MailClearButton_Click" />
+                    </WrapPanel>
+                    <TextBlock Text="仅建立本机 mail.db；不发送、删除、移动或修改邮件，也不读取附件正文。"
+                               Margin="0,9,0,0" Foreground="{StaticResource MutedTextBrush}"
+                               FontSize="11" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
 
             <TextBlock Text="智能排序" FontSize="14" FontWeight="SemiBold" Margin="2,18,0,8" />
             <Border Style="{StaticResource CardStyle}" Padding="15,13">

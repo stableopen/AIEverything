@@ -204,7 +204,7 @@
                         <ColumnDefinition Width="7*" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Margin="15,0,0,0"
-                               Text="文件与路径" Style="{StaticResource EyebrowStyle}"
+                               Text="文件、邮件与位置" Style="{StaticResource EyebrowStyle}"
                                VerticalAlignment="Center" />
                     <TextBlock Grid.Column="1" Margin="14,0,12,0"
                                Text="正文命中" Style="{StaticResource EyebrowStyle}"

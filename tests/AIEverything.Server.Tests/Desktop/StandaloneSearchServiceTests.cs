@@ -2,6 +2,7 @@ using AIEverything.Content.Contracts;
 using AIEverything.ContentClient;
 using AIEverything.Core;
 using AIEverything.Desktop;
+using AIEverything.Desktop.Mail;
 using AIEverything.Desktop.Ranking;
 using AIEverything.Server.Tests.TestDoubles;
 
@@ -9,6 +10,33 @@ namespace AIEverything.Server.Tests.Desktop;
 
 public sealed class StandaloneSearchServiceTests
 {
+    [Fact]
+    public async Task Mail_results_are_in_content_and_hybrid_but_never_filename_mode()
+    {
+        var everything = new FakeEverythingSearchService();
+        var content = new FakeContentSearchService();
+        var mail = new FakeMailSearch(
+        [
+            new MailSearchHit(
+                new MailIdentity("store", "entry"), "Mail subject", "Sender", "Recipient",
+                DateTimeOffset.UtcNow, "Inbox", "needle in mail", "brief.pdf", 0.1)
+        ]);
+        var service = new StandaloneSearchService(
+            everything, content, new HybridSearchService(everything, content), mail);
+
+        var filename = await service.SearchAsync(
+            new DesktopSearchRequest("needle", DesktopSearchMode.FileName));
+        var body = await service.SearchAsync(
+            new DesktopSearchRequest("needle", DesktopSearchMode.Content));
+        var hybrid = await service.SearchAsync(
+            new DesktopSearchRequest("needle", DesktopSearchMode.Hybrid));
+
+        Assert.Empty(filename.Items);
+        Assert.Contains(body.Items, item => item.MailIdentity is not null && item.MatchSource == "mail");
+        Assert.Contains(hybrid.Items, item => item.MailIdentity is not null && item.MatchSource == "mail");
+        Assert.Equal(2, mail.SearchCount);
+    }
+
     [Fact]
     public async Task Filename_mode_keeps_full_machine_files_and_folders_with_soft_results_as_fill()
     {
@@ -216,4 +244,16 @@ public sealed class StandaloneSearchServiceTests
         1,
         DateTimeOffset.UtcNow,
         FileAttributes.Normal);
+
+    private sealed class FakeMailSearch(IReadOnlyList<MailSearchHit> hits) : IMailSearch
+    {
+        public int SearchCount { get; private set; }
+
+        public Task<IReadOnlyList<MailSearchHit>> SearchAsync(
+            string query, int limit, CancellationToken cancellationToken)
+        {
+            SearchCount++;
+            return Task.FromResult(hits);
+        }
+    }
 }

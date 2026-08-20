@@ -15,6 +15,7 @@ using AIEverything.Content.Ipc;
 using AIEverything.Content.Text;
 using AIEverything.ContentClient;
 using AIEverything.Desktop;
+using AIEverything.Desktop.Mail;
 using AIEverything.Desktop.Ranking;
 using AIEverything.Everything;
 
@@ -26,6 +27,7 @@ public partial class MainWindow : Window
     private readonly EverythingEngineManager _everythingEngineManager;
     private readonly ContentDaemonClient _contentClient;
     private readonly StandaloneSearchService _search;
+    private readonly MailSearchModule _mail;
     private readonly ContentDaemonManager _daemonManager;
     private readonly DesktopPreferencesStore _preferences;
     private readonly SqliteRankingBehaviorStore _behaviorStore;
@@ -48,16 +50,19 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         var everything = new EverythingSearchService(_nativeApi);
+        var localDataRoot = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AIEverything");
         _everythingEngineManager = new EverythingEngineManager(new SystemEverythingEngineProcessHost(
             Path.Combine(AppContext.BaseDirectory, "EverythingEngine"),
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "AIEverything", "EverythingEngine", "1.4.1.1032")));
         _contentClient = new ContentDaemonClient(ContentPipeNaming.ForCurrentUser(), TimeSpan.FromSeconds(3));
+        _mail = new MailSearchModule(
+            Path.Combine(localDataRoot, "mail.db"),
+            new OutlookComMailSource());
         _search = new StandaloneSearchService(everything, _contentClient,
-            new HybridSearchService(everything, _contentClient));
+            new HybridSearchService(everything, _contentClient), _mail);
         _daemonManager = new ContentDaemonManager(Path.Combine(AppContext.BaseDirectory, "AIEverything.Daemon.exe"));
-        var localDataRoot = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AIEverything");
         _preferences = new DesktopPreferencesStore(Path.Combine(localDataRoot, "settings.json"));
         _currentPreferences = _preferences.Load();
         _rankingOptions = _currentPreferences.Ranking;
@@ -86,6 +91,7 @@ public partial class MainWindow : Window
         _statusTimer.Start();
         _ = InitializeEverythingAsync(_lifetime.Token);
         _ = InitializeContentAsync(_lifetime.Token);
+        _ = InitializeMailAsync(_lifetime.Token);
         if (_rankingOptions.LocalModelEnabled)
         {
             _ = WarmLocalModelAsync(_lifetime.Token);
@@ -134,6 +140,21 @@ public partial class MainWindow : Window
             RenderContentStatus(_contentStatus);
         }
         catch (Exception exception) when (exception is ContentIndexException or IOException) { }
+    }
+
+    private async Task InitializeMailAsync(CancellationToken token)
+    {
+        try
+        {
+            await _mail.SynchronizeOnStartupAsync(token);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch
+        {
+            // Outlook availability is reported only in Settings; file search stays usable.
+        }
     }
 
     private void RenderContentStatus(ContentIndexStatus status)
@@ -328,6 +349,7 @@ public partial class MainWindow : Window
                 _rankingCoordinator,
                 _localModel,
                 _deepSeekCredentials,
+                _mail,
                 _rankingOptions,
                 _lifetime.Token) { Owner = this };
             settings.ShowDialog();
@@ -406,8 +428,10 @@ public partial class MainWindow : Window
         var selected = Selected;
         PreviewMenuItem.IsEnabled = selected?.CanPreview == true;
         OpenMenuItem.IsEnabled = selected is not null;
-        LocateMenuItem.IsEnabled = selected is not null;
+        OpenMenuItem.Header = selected?.IsMail == true ? "在 Outlook 中打开" : "打开";
+        LocateMenuItem.IsEnabled = selected is not null && !selected.IsMail;
         CopyMenuItem.IsEnabled = selected is not null;
+        CopyMenuItem.Header = selected?.IsMail == true ? "复制邮件引用" : "复制路径或引用";
     }
 
     private static T? FindVisualParent<T>(DependencyObject? source) where T : DependencyObject
@@ -426,7 +450,14 @@ public partial class MainWindow : Window
         if (Selected is not { } item) return;
         try
         {
-            Process.Start(new ProcessStartInfo(item.FullPath) { UseShellExecute = true });
+            if (item.Value.MailIdentity is { } identity)
+            {
+                await _mail.OpenAsync(identity, _lifetime.Token);
+            }
+            else
+            {
+                Process.Start(new ProcessStartInfo(item.Value.FullPath) { UseShellExecute = true });
+            }
         }
         catch (Exception ex)
         {
@@ -440,11 +471,11 @@ public partial class MainWindow : Window
     private async Task LocateAsync()
     {
         _rankingGate.MarkInteraction();
-        if (Selected is not { } item) return;
+        if (Selected is not { } item || item.IsMail) return;
         try
         {
             Process.Start(new ProcessStartInfo("explorer.exe")
-                { UseShellExecute = true, ArgumentList = { $"/select,{item.FullPath}" } });
+                { UseShellExecute = true, ArgumentList = { $"/select,{item.Value.FullPath}" } });
         }
         catch (Exception ex)
         {
@@ -462,7 +493,7 @@ public partial class MainWindow : Window
         try
         {
             Clipboard.SetText(item.Reference);
-            SetQueryStatus("已复制路径/位置引用");
+            SetQueryStatus(item.IsMail ? "已复制邮件引用" : "已复制路径/位置引用");
         }
         catch (Exception ex)
         {
@@ -535,6 +566,7 @@ public partial class MainWindow : Window
         _preferences.Save(_currentPreferences);
         _localModel.DisposeAsync().AsTask().GetAwaiter().GetResult();
         _behaviorStore.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        _mail.DisposeAsync().AsTask().GetAwaiter().GetResult();
         _deepSeekHttpClient.Dispose();
         _nativeApi.Dispose();
         _searchCancellation?.Dispose();
@@ -552,14 +584,19 @@ public partial class MainWindow : Window
         {
             Value = value;
             Mode = mode;
-            Name = value.Name; FullPath = value.FullPath; Snippet = value.Snippet;
+            Name = value.Name; FullPath = value.Detail ?? value.FullPath; Snippet = value.Snippet;
             RankingReason = value.RankingReason;
             HasRankingReason = !string.IsNullOrWhiteSpace(RankingReason);
-            IsContentResult = value.MatchSource != "name" && !string.IsNullOrWhiteSpace(value.Snippet);
-            Location = IsContentResult
+            IsMail = value.MailIdentity is not null;
+            IsContentResult = IsMail || value.MatchSource != "name" && !string.IsNullOrWhiteSpace(value.Snippet);
+            Location = IsMail
+                ? value.LocationLabel ?? "邮件"
+                : IsContentResult
                 ? value.LocationLabel ?? value.HeadingPath ?? (value.StartLine is { } line ? $"第 {line} 行" : "正文")
                 : "文件名";
-            Reference = IsContentResult && !string.IsNullOrWhiteSpace(Location) ? $"{FullPath} · {Location}" : FullPath;
+            Reference = value.CopyText ?? (IsContentResult && !string.IsNullOrWhiteSpace(Location)
+                ? $"{FullPath} · {Location}"
+                : FullPath);
             CanPreview = IsContentResult;
         }
         public DesktopSearchItem Value { get; }
@@ -574,6 +611,7 @@ public partial class MainWindow : Window
         public string Reference { get; }
         public bool CanPreview { get; }
         public bool IsContentResult { get; }
+        public bool IsMail { get; }
         public bool WasPreviewed { get; set; }
     }
 }

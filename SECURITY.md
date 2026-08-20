@@ -12,9 +12,9 @@
 
 ## 安全边界
 
-- AIEverything 会读取本机文件名以及用户启用范围内的 TXT/Markdown 正文，用于建立本地搜索索引。
-- `content.db` 和 `ranking.db` 位于当前用户的 `%LOCALAPPDATA%\AIEverything`，未单独加密；操作系统账户权限和磁盘加密仍是主要保护边界。
-- DeepSeek 增强默认关闭；凭据存储在 Windows Credential Manager。源码、设置、数据库和日志不应包含 API Key。
+- AIEverything 会读取本机文件名、DOCX/TXT/Markdown 正文以及 Classic Outlook 最近邮件，用于建立本地搜索索引。
+- `content.db`、`mail.db` 和 `ranking.db` 位于当前用户的 `%LOCALAPPDATA%\AIEverything`，未单独加密；操作系统账户权限和磁盘加密仍是主要保护边界。
+- DeepSeek 歧义增强默认启用，但没有凭据时不会联网；凭据存储在 Windows Credential Manager。源码、设置、数据库和日志不应包含 API Key。
 - 项目不应修改、删除、移动或上传用户源文件。
 
 如怀疑密钥已经进入提交历史，请先撤销/轮换密钥，再清理历史；仅删除当前文件不足以使旧密钥失效。

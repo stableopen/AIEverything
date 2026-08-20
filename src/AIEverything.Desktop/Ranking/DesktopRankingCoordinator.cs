@@ -319,6 +319,8 @@ public sealed class DesktopRankingCoordinator
         IReadOnlyDictionary<string, double> scores)
     {
         if (candidates.Any(candidate => candidate.Tier == RankingProtectedTier.Exact) ||
+            candidates.Any(candidate => string.Equals(
+                candidate.MatchSource, "mail", StringComparison.OrdinalIgnoreCase)) ||
             candidates.Count(candidate => candidate.Tier == RankingProtectedTier.Eligible) < 3 ||
             IsExplicitFileOrPathQuery(query))
         {
