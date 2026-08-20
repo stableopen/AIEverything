@@ -26,8 +26,8 @@ public sealed class StandaloneProductContractTests
         Assert.Contains("打开", xaml);
         Assert.Contains("在资源管理器中定位", xaml);
         Assert.Contains("复制路径或引用", xaml);
-        Assert.Contains("ContentDisclosureBanner", xaml);
-        Assert.Contains("文件名搜索已可用。开启正文搜索，可搜索 Word、TXT 和 Markdown 内容。", xaml);
+        Assert.DoesNotContain("ContentDisclosureBanner", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("EnableContentButton", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("未单独加密的 SQLite", xaml);
         Assert.DoesNotContain("本机固定磁盘", xaml);
         Assert.DoesNotContain("DeepSeek", xaml);
@@ -43,6 +43,8 @@ public sealed class StandaloneProductContractTests
         Assert.DoesNotContain("失败", xaml);
         var mainWindowCode = Read("src", "AIEverything.App", "MainWindow.xaml.cs");
         Assert.Contains("智能排序推荐", mainWindowCode);
+        Assert.DoesNotContain("ContentDisclosureBanner", mainWindowCode, StringComparison.Ordinal);
+        Assert.DoesNotContain("EnableContentButton", mainWindowCode, StringComparison.Ordinal);
         Assert.DoesNotContain("SearchButton", mainWindowCode);
         var titleBarStart = xaml.IndexOf("<Border Grid.Row=\"0\"", StringComparison.Ordinal);
         var settingsButton = xaml.IndexOf("x:Name=\"SettingsButton\"", StringComparison.Ordinal);
@@ -119,7 +121,7 @@ public sealed class StandaloneProductContractTests
     public void V101_status_and_feedback_are_short_and_actionable()
     {
         var main = Read("src", "AIEverything.App", "MainWindow.xaml.cs");
-        Assert.Contains("文件名搜索已就绪。开启正文索引后可搜索 Word、TXT 和 Markdown。", main, StringComparison.Ordinal);
+        Assert.Contains("正文搜索已关闭，可在设置中开启；文件名搜索仍可用。", main, StringComparison.Ordinal);
         Assert.Contains("正在建立正文索引，已有 {status.IndexedDocuments:N0} 个文件可搜索。", main, StringComparison.Ordinal);
         Assert.Contains("正文索引已暂停，已有内容仍可搜索。", main, StringComparison.Ordinal);
         Assert.Contains("文件名服务暂时不可用，正在重试；已有正文仍可搜索。", main, StringComparison.Ordinal);
@@ -168,7 +170,7 @@ public sealed class StandaloneProductContractTests
         Assert.Contains("本地语义匹配", view, StringComparison.Ordinal);
         Assert.Contains("找到 3 项 · 智能排序推荐", view, StringComparison.Ordinal);
 
-        var image = Path.Combine(Root, "docs", "images", "aieverything-1.0.1-docx.png");
+        var image = Path.Combine(Root, "docs", "images", "aieverything-1.0.2-docx.png");
         Assert.True(File.Exists(image), image);
         var bytes = File.ReadAllBytes(image);
         Assert.True(bytes.Length > 20_000, $"Screenshot is unexpectedly small: {bytes.Length}");
@@ -274,9 +276,9 @@ public sealed class StandaloneProductContractTests
             "src", "AIEverything.ExtractorWorker", "AIEverything.ExtractorWorker.csproj");
         foreach (var project in new[] { appProject, daemonProject, workerProject })
         {
-            Assert.Contains("<Version>1.0.1</Version>", project, StringComparison.Ordinal);
-            Assert.Contains("<AssemblyVersion>1.0.1.0</AssemblyVersion>", project, StringComparison.Ordinal);
-            Assert.Contains("<FileVersion>1.0.1.0</FileVersion>", project, StringComparison.Ordinal);
+            Assert.Contains("<Version>1.0.2</Version>", project, StringComparison.Ordinal);
+            Assert.Contains("<AssemblyVersion>1.0.2.0</AssemblyVersion>", project, StringComparison.Ordinal);
+            Assert.Contains("<FileVersion>1.0.2.0</FileVersion>", project, StringComparison.Ordinal);
         }
         Assert.Contains("Models\\mmarco-mMiniLMv2-L12-H384-v1", appProject, StringComparison.Ordinal);
         Assert.Contains("ExcludeFromSingleFile=\"true\"", appProject, StringComparison.Ordinal);
@@ -286,8 +288,8 @@ public sealed class StandaloneProductContractTests
             StringComparison.Ordinal);
 
         var build = Read("scripts", "build-standalone.ps1");
-        Assert.Contains("AIEverything-1.0.1-win-x64.zip", build, StringComparison.Ordinal);
-        Assert.Contains("AIEverything-1.0.1-win-x64.zip.sha256", build, StringComparison.Ordinal);
+        Assert.Contains("AIEverything-1.0.2-win-x64.zip", build, StringComparison.Ordinal);
+        Assert.Contains("AIEverything-1.0.2-win-x64.zip.sha256", build, StringComparison.Ordinal);
         Assert.DoesNotContain("AIEverything-V0.21-win-x64.zip", build, StringComparison.Ordinal);
         Assert.Contains("Assert-ModelAssets", build, StringComparison.Ordinal);
         Assert.Contains("Assert-ZipMatchesDirectory", build, StringComparison.Ordinal);
@@ -355,11 +357,27 @@ public sealed class StandaloneProductContractTests
         }
         Assert.DoesNotContain("AIEverything 不联网", portableReadme, StringComparison.Ordinal);
 
-        var releaseNotes = Read("docs", "releases", "1.0.1.md");
-        Assert.Contains("三步开始使用", releaseNotes, StringComparison.Ordinal);
+        var releaseNotes = Read("docs", "releases", "1.0.2.md");
+        Assert.Contains("开始使用", releaseNotes, StringComparison.Ordinal);
         Assert.Contains(".docx", releaseNotes, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("https://github.com/stableye/AIEverything/issues/new", releaseNotes, StringComparison.Ordinal);
-        Assert.Contains("AIEverything-1.0.1-win-x64.zip", Read("README.md"), StringComparison.Ordinal);
+        Assert.Contains("https://github.com/stableopen/AIEverything/issues/new", releaseNotes, StringComparison.Ordinal);
+        Assert.Contains("AIEverything-1.0.2-win-x64.zip", readme, StringComparison.Ordinal);
+        Assert.Contains("![AIEverything 工作原理](docs/images/aieverything-workflow.svg)", readme, StringComparison.Ordinal);
+        Assert.DoesNotContain("Everything SDK ──", readme, StringComparison.Ordinal);
+        Assert.DoesNotContain("点击“启用正文”", readme, StringComparison.Ordinal);
+
+        var workflow = Read("docs", "images", "aieverything-workflow.svg");
+        Assert.Contains("role=\"img\"", workflow, StringComparison.Ordinal);
+        Assert.Contains("<title", workflow, StringComparison.Ordinal);
+        Assert.Contains("<desc", workflow, StringComparison.Ordinal);
+        foreach (var label in new[]
+                 {
+                     "搜索词", "全盘文件名", "Everything", "Word TXT Markdown 正文", "本地索引",
+                     "合并净化", "智能排序", "常用偏好", "本地语义", "可选 DeepSeek", "最可能结果优先"
+                 })
+        {
+            Assert.Contains(label, workflow, StringComparison.Ordinal);
+        }
 
         var notices = Read("THIRD_PARTY_NOTICES.md");
         Assert.Contains("Microsoft.ML.OnnxRuntime` 1.29.0", notices, StringComparison.Ordinal);

@@ -55,6 +55,21 @@ public sealed class ContentIndexStore : IAsyncDisposable
                 await using var command = connection.CreateCommand();
                 command.CommandText = ContentSchema.Sql;
                 await command.ExecuteNonQueryAsync(cancellationToken);
+
+                var enabled = await GetSettingAsync(connection, "enabled", cancellationToken);
+                var disclosed = await GetSettingAsync(
+                    connection, "disclosure_accepted", cancellationToken);
+                if (enabled != "true" && disclosed != "true")
+                {
+                    await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+                    await SetSettingAsync(connection, (SqliteTransaction)transaction,
+                        "enabled", "true", cancellationToken);
+                    await SetSettingAsync(connection, (SqliteTransaction)transaction,
+                        "disclosure_accepted", "true", cancellationToken);
+                    await SetSettingAsync(connection, (SqliteTransaction)transaction,
+                        "sync_state", "waiting_for_everything", cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                }
             }, cancellationToken);
         }
         catch
