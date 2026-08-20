@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using AIEverything.Content.Contracts;
+using AIEverything.Content.Errors;
 using AIEverything.Content.Extraction;
 using AIEverything.Content.Text;
 using Microsoft.Data.Sqlite;
@@ -395,6 +396,13 @@ public sealed class ContentIndexStore : IAsyncDisposable
                 LastIndexedAt: await LastIndexedAsync(connection, cancellationToken), DatabasePath: _databasePath,
                 Message: error ?? syncState, Enabled: enabled, DisclosureAccepted: disclosed,
                 SyncState: syncState, DatabaseBytes: GetDatabaseBytes(),
+                CorruptFailures: await CountFailuresAsync(connection, ContentErrorCodes.CorruptDocument, cancellationToken),
+                UnsupportedOrEncryptedFailures: await CountFailuresAsync(connection, ContentErrorCodes.UnsupportedOrEncryptedDocument, cancellationToken) +
+                    await CountFailuresAsync(connection, ContentErrorCodes.UnsupportedFileType, cancellationToken) +
+                    await CountFailuresAsync(connection, ContentErrorCodes.UnsupportedEncoding, cancellationToken),
+                TooLargeFailures: await CountFailuresAsync(connection, ContentErrorCodes.FileTooLarge, cancellationToken),
+                TimeoutFailures: await CountFailuresAsync(connection, ContentErrorCodes.ExtractionTimeout, cancellationToken),
+                AccessDeniedFailures: await CountFailuresAsync(connection, ContentErrorCodes.AccessDenied, cancellationToken),
                 LastSynchronizedAt: long.TryParse(
                     lastSynchronizedAt,
                     System.Globalization.NumberStyles.Integer,
@@ -402,6 +410,14 @@ public sealed class ContentIndexStore : IAsyncDisposable
                     out var timestamp)
                     ? DateTimeOffset.FromUnixTimeMilliseconds(timestamp)
                     : null);
+        }, cancellationToken);
+
+    public Task ClearFailuresAsync(CancellationToken cancellationToken) =>
+        InGateAsync(async connection =>
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = "DELETE FROM index_failures;";
+            await command.ExecuteNonQueryAsync(cancellationToken);
         }, cancellationToken);
 
     public Task<IReadOnlyList<ContentIndexFailure>> ListFailuresAsync(CancellationToken cancellationToken) =>
@@ -605,6 +621,17 @@ public sealed class ContentIndexStore : IAsyncDisposable
     private static async Task<int> ScalarIntAsync(SqliteConnection connection, SqliteTransaction transaction,
         string sql, string scan, CancellationToken token)
     { await using var command = connection.CreateCommand(); command.Transaction = transaction; command.CommandText = sql; command.Parameters.AddWithValue("$scan", scan); return Convert.ToInt32(await command.ExecuteScalarAsync(token)); }
+
+    private static async Task<int> CountFailuresAsync(
+        SqliteConnection connection,
+        string code,
+        CancellationToken token)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT COUNT(*) FROM index_failures WHERE error_code=$code;";
+        command.Parameters.AddWithValue("$code", code);
+        return Convert.ToInt32(await command.ExecuteScalarAsync(token));
+    }
 
     private static async Task<DateTimeOffset?> LastIndexedAsync(SqliteConnection connection, CancellationToken token)
     { await using var command = connection.CreateCommand(); command.CommandText = "SELECT MAX(indexed_at) FROM documents;"; var value = await command.ExecuteScalarAsync(token); return value is null or DBNull ? null : DateTimeOffset.FromUnixTimeMilliseconds(Convert.ToInt64(value)); }

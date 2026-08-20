@@ -44,6 +44,11 @@ public sealed class StandaloneSearchService
     public Task<ContentIndexStatus> SynchronizeAsync(CancellationToken cancellationToken = default) =>
         _content.SynchronizeAsync(cancellationToken);
 
+    public Task<ContentIndexStatus> RetryFailuresAsync(CancellationToken cancellationToken = default) =>
+        _content is ContentDaemonClient client
+            ? client.RetryFailuresAsync(cancellationToken)
+            : throw new NotSupportedException("Retrying index failures requires the local content daemon.");
+
     public async Task<DesktopSearchResponse> SearchAsync(
         DesktopSearchRequest request,
         CancellationToken cancellationToken = default)

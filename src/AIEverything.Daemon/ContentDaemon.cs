@@ -61,6 +61,7 @@ public sealed class ContentDaemon : IAsyncDisposable
         {
             "index.status" => await GetCompatibleStatusAsync(cancellationToken),
             "index.failures" => await _store.ListFailuresAsync(cancellationToken),
+            "index.failures.retry" => await RetryFailuresAsync(cancellationToken),
             "index.configure" => await ConfigureAsync(Deserialize<IndexConfigurationRequest>(request.Payload), cancellationToken),
             "index.pause" => await SetPausedAsync(true, cancellationToken),
             "index.resume" => await SetPausedAsync(false, cancellationToken),
@@ -68,8 +69,19 @@ public sealed class ContentDaemon : IAsyncDisposable
             "content.search" => await _store.SearchAsync(Deserialize<ContentSearchRequest>(request.Payload), cancellationToken),
             _ => throw new ContentIndexException(ContentErrorCodes.InvalidArguments,
                 $"Unknown daemon operation: {request.Operation}",
-                "Use index.status/failures/configure/pause/resume/sync or content.search.")
+                "Use index.status/failures/failures.retry/configure/pause/resume/sync or content.search.")
         };
+
+    private async Task<ContentIndexStatus> RetryFailuresAsync(CancellationToken token)
+    {
+        await _store.ClearFailuresAsync(token);
+        var status = await _store.GetStatusAsync(token);
+        if (status.Enabled && status.DisclosureAccepted && !status.Paused)
+        {
+            await SynchronizeCandidatesAsync(token, waitForActiveSync: true);
+        }
+        return await GetCompatibleStatusAsync(token);
+    }
 
     private async Task<ContentIndexStatus> ConfigureAsync(IndexConfigurationRequest request, CancellationToken token)
     {

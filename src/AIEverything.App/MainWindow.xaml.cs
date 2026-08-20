@@ -137,8 +137,27 @@ public partial class MainWindow : Window
         try
         {
             _contentStatus = await _contentClient.GetStatusAsync(_lifetime.Token);
+            RenderContentStatus(_contentStatus);
         }
         catch (Exception exception) when (exception is ContentIndexException or IOException) { }
+    }
+
+    private void RenderContentStatus(ContentIndexStatus status)
+    {
+        if (!string.IsNullOrWhiteSpace(SearchBox.Text)) return;
+        var filenameReady = _search.GetEverythingStatus().Ready;
+        var message = !filenameReady
+            ? "文件名服务暂时不可用，正在重试；已有正文仍可搜索。"
+            : !status.Enabled || !status.DisclosureAccepted
+                ? "文件名搜索已就绪。开启正文索引后可搜索 Word、TXT 和 Markdown。"
+                : status.Paused
+                    ? "正文索引已暂停，已有内容仍可搜索。"
+                    : status.QueuedDocuments > 0
+                        ? $"正在建立正文索引，已有 {status.IndexedDocuments:N0} 个文件可搜索。"
+                        : status.FailedDocuments > 0
+                            ? "正文索引已完成，部分文件未处理，请在设置中查看。"
+                            : $"正文索引已就绪，已有 {status.IndexedDocuments:N0} 个文件可搜索。";
+        SetQueryStatus(message);
     }
 
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -265,7 +284,8 @@ public partial class MainWindow : Window
         EmptyPanel.Visibility = Visibility.Visible;
         EmptyTitle.Text = "输入关键词开始搜索";
         EmptyHint.Text = "查找文件名和路径，或定位 TXT、Markdown 中的具体段落";
-        SetQueryStatus("找到 0 项");
+        if (_contentStatus is null) SetQueryStatus("找到 0 项");
+        else RenderContentStatus(_contentStatus);
         UpdateActions();
     }
 

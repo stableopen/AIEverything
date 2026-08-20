@@ -97,14 +97,36 @@ public sealed class StandaloneProductContractTests
     }
 
     [Fact]
-    public void V020_body_contract_names_only_txt_md_and_markdown()
+    public void V101_body_contract_names_only_txt_md_markdown_and_docx()
     {
         var policy = Read("src", "AIEverything.Content", "MachineIndex", "MachineTextIndexPolicy.cs");
         Assert.Contains("[\".txt\"]", policy);
         Assert.Contains("[\".md\"]", policy);
         Assert.Contains("[\".markdown\"]", policy);
-        foreach (var forbidden in new[] { "[\".rst\"]", "[\".pdf\"]", "[\".docx\"]", "[\".xlsx\"]", "[\".pptx\"]" })
+        Assert.Contains("[\".docx\"]", policy);
+        foreach (var forbidden in new[] { "[\".rst\"]", "[\".pdf\"]", "[\".xlsx\"]", "[\".pptx\"]" })
             Assert.DoesNotContain(forbidden, policy);
+    }
+
+    [Fact]
+    public void V101_status_and_feedback_are_short_and_actionable()
+    {
+        var main = Read("src", "AIEverything.App", "MainWindow.xaml.cs");
+        Assert.Contains("文件名搜索已就绪。开启正文索引后可搜索 Word、TXT 和 Markdown。", main, StringComparison.Ordinal);
+        Assert.Contains("正在建立正文索引，已有 {status.IndexedDocuments:N0} 个文件可搜索。", main, StringComparison.Ordinal);
+        Assert.Contains("正文索引已暂停，已有内容仍可搜索。", main, StringComparison.Ordinal);
+        Assert.Contains("文件名服务暂时不可用，正在重试；已有正文仍可搜索。", main, StringComparison.Ordinal);
+        Assert.Contains("正文索引已完成，部分文件未处理，请在设置中查看。", main, StringComparison.Ordinal);
+
+        var settings = Read("src", "AIEverything.App", "ContentSettingsWindow.xaml");
+        foreach (var id in new[] { "SettingsFailureGroupsText", "SettingsRetryFailuresButton", "SettingsReportProblemButton" })
+            Assert.Contains($"AutomationProperties.AutomationId=\"{id}\"", settings, StringComparison.Ordinal);
+        foreach (var label in new[] { "损坏", "加密/不支持", "过大", "超时", "无权限" })
+            Assert.Contains(label, settings, StringComparison.Ordinal);
+        Assert.Contains("https://github.com/stableye/AIEverything/issues/new", Read("src", "AIEverything.App", "ContentSettingsWindow.xaml.cs"), StringComparison.Ordinal);
+
+        var daemon = Read("src", "AIEverything.Daemon", "ContentDaemon.cs");
+        Assert.Contains("index.failures.retry", daemon, StringComparison.Ordinal);
     }
 
     [Fact]

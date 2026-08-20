@@ -57,6 +57,10 @@ public sealed class ContentDaemonClient : IContentSearchService
         SendAsync<IndexControlRequest, ContentIndexStatus>(
             "index.sync", new IndexControlRequest(), cancellationToken);
 
+    public Task<ContentIndexStatus> RetryFailuresAsync(CancellationToken cancellationToken = default) =>
+        SendAsync<IndexControlRequest, ContentIndexStatus>(
+            "index.failures.retry", new IndexControlRequest(), cancellationToken);
+
     private async Task<TResult> SendAsync<TPayload, TResult>(
         string operation,
         TPayload payload,
