@@ -83,6 +83,42 @@ public sealed class TextExtractorTests : IDisposable
     }
 
     [Fact]
+    public async Task Extracts_structured_docx_paragraphs_headings_and_table_cells()
+    {
+        var path = Path.Combine(_root, "structured.docx");
+        using (var document = WordprocessingDocument.Create(path, WordprocessingDocumentType.Document))
+        {
+            var main = document.AddMainDocumentPart();
+            var heading = new W.Paragraph(
+                new W.ParagraphProperties(new W.ParagraphStyleId { Val = "Heading1" }),
+                new W.Run(new W.Text("Sales Plan")));
+            var joinedParagraph = new W.Paragraph(
+                new W.Run(new W.Text("Quarterly ")),
+                new W.Run(new W.Text("operating plan")));
+            var regionalParagraph = new W.Paragraph(
+                new W.Run(new W.Text("regional target")));
+            var table = new W.Table(
+                new W.TableRow(
+                    new W.TableCell(new W.Paragraph(new W.Run(new W.Text("Region")))),
+                    new W.TableCell(new W.Paragraph(new W.Run(new W.Text("CellCanary"))))));
+            main.Document = new W.Document(new W.Body(heading, joinedParagraph, regionalParagraph, table));
+            main.Document.Save();
+        }
+
+        var result = await _extractor.ExtractAsync(new ExtractionRequest(path), CancellationToken.None);
+
+        Assert.NotNull(result.Blocks);
+        Assert.Contains(result.Blocks!, block =>
+            block.Text == "Quarterly operating plan" &&
+            block.LocationLabel.Contains("paragraph", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(result.Blocks!, block =>
+            block.Text == "regional target" && block.HeadingPath == "Sales Plan");
+        Assert.Contains(result.Blocks!, block =>
+            block.Text == "CellCanary" &&
+            block.LocationLabel.Contains("Table 1 · row 1 · cell 2", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task Extracts_text_pdf_and_marks_empty_pdf_for_ocr()
     {
         var textPdf = CreatePdf("Hello PDF");
