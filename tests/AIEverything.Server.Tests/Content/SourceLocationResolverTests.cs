@@ -11,13 +11,13 @@ public sealed class SourceLocationResolverTests
         var blocks = new[]
         {
             new ExtractedTextBlock(1, "Sales Plan", "Sales Plan · heading 1", "Sales Plan"),
-            new ExtractedTextBlock(2, "regional target is rising", "Sales Plan · paragraph 4", "Sales Plan")
+            new ExtractedTextBlock(2, "regional target is rising", "Sales Plan · 第 4 段", "Sales Plan")
         };
 
         var hit = Assert.Single(SourceLocationResolver.Resolve(
             "Sales Plan\nregional target is rising", "docx", ["regional", "target"], blocks));
 
-        Assert.Equal("Sales Plan · paragraph 4", hit.LocationLabel);
+        Assert.Equal("Sales Plan · 第 4 段", hit.LocationLabel);
         Assert.Equal("Sales Plan", hit.HeadingPath);
         Assert.Contains("regional target", hit.Snippet, StringComparison.Ordinal);
     }

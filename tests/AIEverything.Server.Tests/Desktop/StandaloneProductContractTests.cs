@@ -145,9 +145,17 @@ public sealed class StandaloneProductContractTests
         Assert.Contains("PngBitmapEncoder", renderer, StringComparison.Ordinal);
         Assert.DoesNotContain("HttpListener", renderer, StringComparison.Ordinal);
         Assert.DoesNotContain("ContentIndexStore", renderer, StringComparison.Ordinal);
-        Assert.Contains("Quarterly-Sales-Plan.docx", view, StringComparison.Ordinal);
-        Assert.Contains("Sales Plan · paragraph 2", view, StringComparison.Ordinal);
-        Assert.Contains("RegionalTargetCanary", view, StringComparison.Ordinal);
+        Assert.Contains("季度销售计划.docx", view, StringComparison.Ordinal);
+        Assert.Single(System.Text.RegularExpressions.Regex.Matches(
+            view,
+            "Text=\"季度销售计划\\.docx\"",
+            System.Text.RegularExpressions.RegexOptions.CultureInvariant)
+            .Cast<System.Text.RegularExpressions.Match>());
+        Assert.Contains("区域目标明细.docx", view, StringComparison.Ordinal);
+        Assert.Contains("销售计划 · 第 2 段", view, StringComparison.Ordinal);
+        Assert.Contains("华北区域目标", view, StringComparison.Ordinal);
+        Assert.DoesNotContain("Canary", view, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("TestCanary", view, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("本地语义匹配", view, StringComparison.Ordinal);
         Assert.Contains("找到 3 项 · 智能排序推荐", view, StringComparison.Ordinal);
 

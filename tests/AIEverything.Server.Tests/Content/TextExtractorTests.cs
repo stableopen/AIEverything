@@ -110,12 +110,12 @@ public sealed class TextExtractorTests : IDisposable
         Assert.NotNull(result.Blocks);
         Assert.Contains(result.Blocks!, block =>
             block.Text == "Quarterly operating plan" &&
-            block.LocationLabel.Contains("paragraph", StringComparison.OrdinalIgnoreCase));
+            block.LocationLabel.Contains("第 1 段", StringComparison.Ordinal));
         Assert.Contains(result.Blocks!, block =>
             block.Text == "regional target" && block.HeadingPath == "Sales Plan");
         Assert.Contains(result.Blocks!, block =>
             block.Text == "CellCanary" &&
-            block.LocationLabel.Contains("Table 1 · row 1 · cell 2", StringComparison.Ordinal));
+            block.LocationLabel.Contains("表格 1 · 第 1 行 · 第 2 列", StringComparison.Ordinal));
     }
 
     [Fact]

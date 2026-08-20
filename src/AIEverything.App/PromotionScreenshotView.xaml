@@ -50,7 +50,7 @@
                         <TextBlock Text="&#xE721;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
                                    FontSize="15" Foreground="{StaticResource MutedTextBrush}"
                                    VerticalAlignment="Center" />
-                        <TextBlock Grid.Column="1" Text="RegionalTargetCanary"
+                        <TextBlock Grid.Column="1" Text="华北区域目标"
                                    FontSize="15" VerticalAlignment="Center" />
                     </Grid>
                 </Border>
@@ -110,7 +110,7 @@
                                 <Grid.RowDefinitions><RowDefinition /><RowDefinition /></Grid.RowDefinitions>
                                 <Grid>
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                                    <TextBlock Text="Quarterly-Sales-Plan.docx" FontSize="13" FontWeight="SemiBold" />
+                                    <TextBlock Text="季度销售计划.docx" FontSize="13" FontWeight="SemiBold" />
                                     <Border Grid.Column="1" Style="{StaticResource MetadataBadgeStyle}" Margin="8,0,0,0">
                                         <TextBlock Text="本地语义匹配" FontSize="10.5" Foreground="#245F8F" />
                                     </Border>
@@ -118,16 +118,16 @@
                                 <Grid Grid.Row="1" Margin="0,7,0,0">
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
                                     <Border Style="{StaticResource MetadataBadgeStyle}">
-                                        <TextBlock Text="Sales Plan · paragraph 2" FontSize="10.5" Foreground="#245F8F" />
+                                        <TextBlock Text="销售计划 · 第 2 段" FontSize="10.5" Foreground="#245F8F" />
                                     </Border>
                                     <TextBlock Grid.Column="1" Margin="8,1,0,0"
-                                               Text="C:\Users\demo\Documents\Quarterly-Sales-Plan.docx"
+                                               Text="C:\Users\示例\Documents\季度销售计划.docx"
                                                Foreground="{StaticResource MutedTextBrush}" FontSize="11" />
                                 </Grid>
                             </Grid>
                             <Border Grid.Column="2" BorderBrush="{StaticResource BorderBrush}"
                                     BorderThickness="1,0,0,0" Padding="14,10,12,8">
-                                <TextBlock Text="RegionalTargetCanary confirms the north region target."
+                                <TextBlock Text="华北区域目标较上季度提升，重点推进核心客户续约。"
                                            Foreground="{StaticResource SecondaryTextBrush}" FontSize="11.5"
                                            LineHeight="17" TextWrapping="Wrap" />
                             </Border>
@@ -138,16 +138,16 @@
                         <Grid Height="68">
                             <Grid.ColumnDefinitions><ColumnDefinition Width="13*" /><ColumnDefinition Width="7*" /></Grid.ColumnDefinitions>
                             <StackPanel Margin="15,10">
-                                <TextBlock Text="Quarterly-Sales-Plan.docx" FontSize="13" FontWeight="SemiBold" />
+                                <TextBlock Text="区域目标明细.docx" FontSize="13" FontWeight="SemiBold" />
                                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                     <Border Style="{StaticResource MetadataBadgeStyle}">
-                                        <TextBlock Text="Sales Plan · Table 1 · row 1 · cell 2" FontSize="10.5" Foreground="#245F8F" />
+                                        <TextBlock Text="区域分解 · 表格 1 · 第 1 行 · 第 2 列" FontSize="10.5" Foreground="#245F8F" />
                                     </Border>
                                     <TextBlock Text="  2 处命中已合并" Foreground="{StaticResource MutedTextBrush}" FontSize="11" />
                                 </StackPanel>
                             </StackPanel>
                             <Border Grid.Column="1" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1,0,0,0" Padding="14,10">
-                                <TextBlock Text="TableCellCanary" Foreground="{StaticResource SecondaryTextBrush}" FontSize="11.5" />
+                                <TextBlock Text="华北区域目标：1,250 万元" Foreground="{StaticResource SecondaryTextBrush}" FontSize="11.5" />
                             </Border>
                         </Grid>
                     </Border>
@@ -155,12 +155,12 @@
                     <Grid Height="62">
                         <Grid.ColumnDefinitions><ColumnDefinition Width="13*" /><ColumnDefinition Width="7*" /></Grid.ColumnDefinitions>
                         <StackPanel Margin="15,10">
-                            <TextBlock Text="Internal-Promotion-Notes.md" FontSize="13" FontWeight="SemiBold" />
-                            <TextBlock Text="C:\Users\demo\Documents\Internal-Promotion-Notes.md"
+                            <TextBlock Text="销售会议纪要.md" FontSize="13" FontWeight="SemiBold" />
+                            <TextBlock Text="C:\Users\示例\Documents\销售会议纪要.md"
                                        Margin="0,5,0,0" Foreground="{StaticResource MutedTextBrush}" FontSize="11" />
                         </StackPanel>
                         <Border Grid.Column="1" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1,0,0,0" Padding="14,10">
-                            <TextBlock Text="Word、TXT 和 Markdown 正文会在后台逐步进入结果。"
+                            <TextBlock Text="华北区域目标将在八月底完成重点客户确认。"
                                        TextWrapping="Wrap" Foreground="{StaticResource SecondaryTextBrush}" FontSize="11.5" />
                         </Border>
                     </Grid>

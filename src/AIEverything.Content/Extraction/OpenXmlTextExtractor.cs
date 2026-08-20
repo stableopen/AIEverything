@@ -60,15 +60,15 @@ public sealed class OpenXmlTextExtractor : ITextExtractor
                     headingStack[level - 1] = text;
                     Array.Clear(headingStack, level, headingStack.Length - level);
                     var headingPath = CurrentHeadingPath(headingStack);
-                    blocks.Add(new ExtractedTextBlock(++ordinal, text, $"{headingPath} · heading {level}", headingPath));
+                    blocks.Add(new ExtractedTextBlock(++ordinal, text, $"{headingPath} · 标题 {level}", headingPath));
                     continue;
                 }
 
                 paragraphNumber++;
                 var currentHeading = CurrentHeadingPath(headingStack);
                 var label = currentHeading is null
-                    ? $"paragraph {paragraphNumber}"
-                    : $"{currentHeading} · paragraph {paragraphNumber}";
+                    ? $"第 {paragraphNumber} 段"
+                    : $"{currentHeading} · 第 {paragraphNumber} 段";
                 blocks.Add(new ExtractedTextBlock(++ordinal, text, label, currentHeading));
             }
             else if (element is W.Table table)
@@ -91,7 +91,7 @@ public sealed class OpenXmlTextExtractor : ITextExtractor
                         }
 
                         var currentHeading = CurrentHeadingPath(headingStack);
-                        var coordinates = $"Table {tableNumber} · row {rowNumber} · cell {cellNumber}";
+                        var coordinates = $"表格 {tableNumber} · 第 {rowNumber} 行 · 第 {cellNumber} 列";
                         var label = currentHeading is null ? coordinates : $"{currentHeading} · {coordinates}";
                         blocks.Add(new ExtractedTextBlock(++ordinal, text, label, currentHeading));
                     }

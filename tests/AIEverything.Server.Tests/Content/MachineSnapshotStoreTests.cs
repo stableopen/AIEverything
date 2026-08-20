@@ -91,7 +91,7 @@ public sealed class MachineSnapshotStoreTests : IAsyncLifetime
         var blocks = new[]
         {
             new ExtractedTextBlock(1, "Sales Plan", "Sales Plan · heading 1", "Sales Plan"),
-            new ExtractedTextBlock(2, "regional target is rising", "Sales Plan · paragraph 4", "Sales Plan")
+            new ExtractedTextBlock(2, "regional target is rising", "Sales Plan · 第 4 段", "Sales Plan")
         };
         await _store.CompleteAsync(
             lease,
@@ -102,7 +102,7 @@ public sealed class MachineSnapshotStoreTests : IAsyncLifetime
             new ContentSearchRequest("regional target"), CancellationToken.None);
 
         var item = Assert.Single(response.Items);
-        Assert.Equal("Sales Plan · paragraph 4", item.LocationLabel);
+        Assert.Equal("Sales Plan · 第 4 段", item.LocationLabel);
         Assert.Equal("Sales Plan", item.HeadingPath);
     }
 
