@@ -235,9 +235,9 @@ public sealed class StandaloneProductContractTests
             "src", "AIEverything.ExtractorWorker", "AIEverything.ExtractorWorker.csproj");
         foreach (var project in new[] { appProject, daemonProject, workerProject })
         {
-            Assert.Contains("<Version>1.0.0</Version>", project, StringComparison.Ordinal);
-            Assert.Contains("<AssemblyVersion>1.0.0.0</AssemblyVersion>", project, StringComparison.Ordinal);
-            Assert.Contains("<FileVersion>1.0.0.0</FileVersion>", project, StringComparison.Ordinal);
+            Assert.Contains("<Version>1.0.1</Version>", project, StringComparison.Ordinal);
+            Assert.Contains("<AssemblyVersion>1.0.1.0</AssemblyVersion>", project, StringComparison.Ordinal);
+            Assert.Contains("<FileVersion>1.0.1.0</FileVersion>", project, StringComparison.Ordinal);
         }
         Assert.Contains("Models\\mmarco-mMiniLMv2-L12-H384-v1", appProject, StringComparison.Ordinal);
         Assert.Contains("ExcludeFromSingleFile=\"true\"", appProject, StringComparison.Ordinal);
@@ -247,9 +247,9 @@ public sealed class StandaloneProductContractTests
             StringComparison.Ordinal);
 
         var build = Read("scripts", "build-standalone.ps1");
-        Assert.Contains("AIEverything-1.0.0-win-x64.zip", build, StringComparison.Ordinal);
-        Assert.Contains("AIEverything-V0.21-win-x64.zip", build, StringComparison.Ordinal);
-        Assert.Contains("8FC8801E143F6D20E9D68D78ECF401CCAF7C3E7CCFC8E66D2BFEE43EA10F54D2", build, StringComparison.Ordinal);
+        Assert.Contains("AIEverything-1.0.1-win-x64.zip", build, StringComparison.Ordinal);
+        Assert.Contains("AIEverything-1.0.1-win-x64.zip.sha256", build, StringComparison.Ordinal);
+        Assert.DoesNotContain("AIEverything-V0.21-win-x64.zip", build, StringComparison.Ordinal);
         Assert.Contains("Assert-ModelAssets", build, StringComparison.Ordinal);
         Assert.Contains("Assert-ZipMatchesDirectory", build, StringComparison.Ordinal);
         Assert.Contains("F143532D288194D1BF9B81486301D160ABCBC22E78FFE60D6C0C15CA7CA0DF46", build, StringComparison.Ordinal);
@@ -315,6 +315,12 @@ public sealed class StandaloneProductContractTests
             Assert.Contains("环境变量", text, StringComparison.Ordinal);
         }
         Assert.DoesNotContain("AIEverything 不联网", portableReadme, StringComparison.Ordinal);
+
+        var releaseNotes = Read("docs", "releases", "1.0.1.md");
+        Assert.Contains("三步开始使用", releaseNotes, StringComparison.Ordinal);
+        Assert.Contains(".docx", releaseNotes, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("https://github.com/stableye/AIEverything/issues/new", releaseNotes, StringComparison.Ordinal);
+        Assert.Contains("AIEverything-1.0.1-win-x64.zip", Read("README.md"), StringComparison.Ordinal);
 
         var notices = Read("THIRD_PARTY_NOTICES.md");
         Assert.Contains("Microsoft.ML.OnnxRuntime` 1.29.0", notices, StringComparison.Ordinal);

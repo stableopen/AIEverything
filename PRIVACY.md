@@ -1,4 +1,4 @@
-# AIEverything 1.0.0 隐私说明
+# AIEverything 1.0.1 隐私说明
 
 ## 默认状态
 
@@ -6,7 +6,7 @@ AIEverything 的文件名搜索、正文索引、行为排序和 ONNX 语义排�
 
 ## 本机数据
 
-- `%LOCALAPPDATA%\AIEverything\content.db`：TXT、MD、MARKDOWN 的本机 SQLite/FTS 正文索引，未单独加密。
+- `%LOCALAPPDATA%\AIEverything\content.db`：DOCX、TXT、MD、MARKDOWN 的本机 SQLite/FTS 正文索引和 Word 位置图，未单独加密。
 - `%LOCALAPPDATA%\AIEverything\ranking.db`：只保存由随机盐加盐的文件键、父目录键、扩展名和每日权重聚合，保留 30 天；不保存查询、正文、片段或明文路径。打开/复制权重为 `1.0`，定位为 `0.5`，单独预览为 `0`，预览后再打开/复制额外 `+0.25`。聚合按 30 天半衰衰减，并以 `file + 0.30 × parentDirectory + 0.10 × extension` 形成亲和。用户清除时会删除聚合并轮换随机盐。
 - `%LOCALAPPDATA%\AIEverything\settings.json`：窗口状态、排序开关和“已知晓行为学习披露”布尔值；不保存查询、API key、token 或其他凭据。
 
