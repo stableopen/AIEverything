@@ -5,9 +5,9 @@ AIEverything 1.0.1（Windows x64）
 
 使用：
 1. 双击 AIEverything.exe。
-2. 首次启动会显示非模态行为学习提示，可知道、关闭或进入设置清除；正文提示中的“启用正文”可自动索引本机 ready 的 fixed NTFS/ReFS 磁盘，不需要添加目录。
+2. 首次启动点击“启用正文”，可自动索引本机 ready 的 fixed NTFS/ReFS 磁盘，不需要添加目录；详细存储与联网边界可在设置和 PRIVACY.md 查看。
 3. 搜索结果支持预览、打开、定位和复制路径/位置引用；F5 立即同步正文。
-4. 行为排序和本地 ONNX 模型默认开启，结果行显示“最近常用 / 本地语义匹配 / AI优化”；DeepSeek 默认关闭。
+4. 行为排序、本地 ONNX 模型和 DeepSeek 歧义增强默认开启；无 DeepSeek 凭据时自动使用本地排序。
 
 1.0.1 智能排序：
 - 只作用于桌面“全部 / 文件名”；正文、CLI、MCP 不变。
@@ -29,7 +29,7 @@ AIEverything 1.0.1（Windows x64）
 行为聚合保存在 %LOCALAPPDATA%\AIEverything\ranking.db。
 
 可选 DeepSeek：
-默认关闭。只有用户接受披露、主动开启、本地 ONNX 成功且分数完整、无 Exact、至少 3 个 Eligible，并出现分数接近/重复名称/名称与正文混合证据/自然语言歧义之一时才可能请求 api.deepseek.com；明确文件名、引号或路径式查询零网络。发送当前查询和本地前 10 项候选的 ID、文件名、完整路径及每项最多 200 字片段；不发送匹配来源或排序层级，不上传文件本体或行为历史。总预算 1.5 秒、请求体最大 24 KiB、单并发、滚动每分钟最多 10 次、会话缓存 10 分钟；限流或连续服务失败会熔断 30 秒且不重试。设置页用遮罩输入把密钥保存/更新到 Windows 凭据管理器 AIEverything/DeepSeek；settings.json、ranking.db 与日志不保存密钥。发布版不读环境变量，调试版才可回退 AIEVERYTHING_DEEPSEEK_API_KEY。详见 PRIVACY.md。
+DeepSeek 默认启用。只有 Windows 凭据管理器已有凭据、本地 ONNX 成功且分数完整、无 Exact、至少 3 个 Eligible，并出现分数接近/重复名称/名称与正文混合证据/自然语言歧义之一时才可能请求 api.deepseek.com；明确文件名、引号或路径式查询零网络。没有凭据时静默使用本地排序。发送当前查询和本地前 10 项候选的 ID、文件名、完整路径及每项最多 200 字片段；不发送匹配来源或排序层级，不上传文件本体或行为历史。总预算 1.5 秒、请求体最大 24 KiB、单并发、滚动每分钟最多 10 次、会话缓存 10 分钟；限流或连续服务失败会熔断 30 秒且不重试。设置页用遮罩输入把密钥保存/更新到 Windows 凭据管理器 AIEverything/DeepSeek；settings.json、ranking.db 与日志不保存密钥。发布版不读环境变量，调试版才可回退 AIEVERYTHING_DEEPSEEK_API_KEY。详见 PRIVACY.md。
 
 除上述用户显式开启的可选复排外，搜索与排序不联网。AIEverything 不会修改、删除或移动用户文件。
 

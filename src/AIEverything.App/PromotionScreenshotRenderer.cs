@@ -10,7 +10,7 @@ internal static class PromotionScreenshotRenderer
     internal const int Width = 900;
     internal const int Height = 560;
 
-    internal static void Render(string outputPath)
+    internal static void Render(string outputPath, bool empty = false)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(outputPath);
         if (!Path.IsPathFullyQualified(outputPath))
@@ -18,7 +18,7 @@ internal static class PromotionScreenshotRenderer
             throw new ArgumentException("Promotion screenshot path must be absolute.", nameof(outputPath));
         }
 
-        var view = new PromotionScreenshotView
+        var view = new PromotionScreenshotView(empty)
         {
             Width = Width,
             Height = Height

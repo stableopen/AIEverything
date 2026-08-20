@@ -27,8 +27,15 @@ public sealed class StandaloneProductContractTests
         Assert.Contains("在资源管理器中定位", xaml);
         Assert.Contains("复制路径或引用", xaml);
         Assert.Contains("ContentDisclosureBanner", xaml);
-        Assert.Contains("文件名搜索已可使用", xaml);
-        Assert.Contains("未单独加密的 SQLite", xaml);
+        Assert.Contains("文件名搜索已可用。开启正文搜索，可搜索 Word、TXT 和 Markdown 内容。", xaml);
+        Assert.DoesNotContain("未单独加密的 SQLite", xaml);
+        Assert.DoesNotContain("本机固定磁盘", xaml);
+        Assert.DoesNotContain("DeepSeek", xaml);
+        Assert.DoesNotContain("BehaviorDisclosureBanner", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("x:Name=\"EmptyPanel\"", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("x:Name=\"EmptyTitle\"", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("x:Name=\"EmptyHint\"", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("输入关键词开始搜索", xaml, StringComparison.Ordinal);
         Assert.Contains("QueryStatusText", xaml);
         Assert.DoesNotContain("SearchButton", xaml);
         Assert.DoesNotContain("FooterStatusText", xaml);
@@ -137,6 +144,7 @@ public sealed class StandaloneProductContractTests
         var view = Read("src", "AIEverything.App", "PromotionScreenshotView.xaml");
 
         Assert.Contains("--render-promotion-screenshot", app, StringComparison.Ordinal);
+        Assert.Contains("--empty", app, StringComparison.Ordinal);
         Assert.Contains("Path.IsPathFullyQualified", app, StringComparison.Ordinal);
         Assert.DoesNotContain("StartupUri=", Read("src", "AIEverything.App", "App.xaml"), StringComparison.Ordinal);
         Assert.Contains("MainWindow = new MainWindow();", app, StringComparison.Ordinal);
@@ -178,7 +186,7 @@ public sealed class StandaloneProductContractTests
         foreach (var id in new[]
                  {
                      "SettingsScrollViewer", "BehaviorRankingToggle", "ClearBehaviorButton", "LocalModelToggle",
-                     "LocalModelStatusText", "DeepSeekDisclosureCheck", "DeepSeekDisclosureText",
+                     "LocalModelStatusText", "DeepSeekDisclosureText",
                      "DeepSeekToggle", "DeepSeekStatusText", "DeepSeekApiKeyBox",
                      "SaveDeepSeekCredentialButton"
                  })
@@ -191,7 +199,8 @@ public sealed class StandaloneProductContractTests
         Assert.Contains("明确文件名或路径查询绝不联网", settings, StringComparison.Ordinal);
         Assert.Contains("文件名、完整路径和每项最多 200 字片段", settings, StringComparison.Ordinal);
         Assert.Contains("不发送匹配来源、排序层级、文件本体或行为历史", settings, StringComparison.Ordinal);
-        Assert.Contains("启用 DeepSeek 歧义重排（默认关闭）", settings, StringComparison.Ordinal);
+        Assert.Contains("DeepSeek 默认启用", settings, StringComparison.Ordinal);
+        Assert.Contains("启用 DeepSeek 歧义重排（默认开启）", settings, StringComparison.Ordinal);
         Assert.Contains("总预算 1.5 秒", settings, StringComparison.Ordinal);
         Assert.Contains("滚动每分钟最多 10 次", settings, StringComparison.Ordinal);
         Assert.Contains("会话缓存 10 分钟", settings, StringComparison.Ordinal);
@@ -210,12 +219,9 @@ public sealed class StandaloneProductContractTests
         Assert.Contains("清除会删除聚合并轮换随机盐", settings, StringComparison.Ordinal);
 
         var rankingModels = Read("src", "AIEverything.Desktop", "Ranking", "RankingModels.cs");
-        Assert.Contains("new(true, true, false, false)", rankingModels, StringComparison.Ordinal);
-        var preferences = Read("src", "AIEverything.Desktop", "DesktopPreferencesStore.cs");
-        Assert.Contains(
-            "DeepSeekEnabled = ranking.DeepSeekDisclosureAccepted && ranking.DeepSeekEnabled",
-            preferences,
-            StringComparison.Ordinal);
+        Assert.Contains("new(true, true, true, true)", rankingModels, StringComparison.Ordinal);
+        var coordinator = Read("src", "AIEverything.Desktop", "Ranking", "DesktopRankingCoordinator.cs");
+        Assert.DoesNotContain("!options.DeepSeekDisclosureAccepted", coordinator, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -234,26 +240,19 @@ public sealed class StandaloneProductContractTests
     }
 
     [Fact]
-    public void V021_behavior_disclosure_is_non_modal_persistent_and_ranking_reasons_are_visible()
+    public void V021_behavior_details_stay_in_settings_and_ranking_reasons_are_visible()
     {
         var xaml = Read("src", "AIEverything.App", "MainWindow.xaml");
-        foreach (var id in new[]
-                 {
-                     "BehaviorDisclosureBanner", "AcknowledgeBehaviorButton",
-                     "DisableBehaviorButton", "BehaviorSettingsButton", "RankingReasonBadge"
-                 })
-        {
-            Assert.Contains($"AutomationProperties.AutomationId=\"{id}\"", xaml, StringComparison.Ordinal);
-        }
-
-        Assert.Contains("本地排序学习默认开启", xaml, StringComparison.Ordinal);
-        Assert.Contains("只记录成功操作的每日权重聚合", xaml, StringComparison.Ordinal);
-        Assert.Contains("保留 30 天", xaml, StringComparison.Ordinal);
+        Assert.Contains("AutomationProperties.AutomationId=\"RankingReasonBadge\"", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("BehaviorDisclosureBanner", xaml, StringComparison.Ordinal);
         Assert.Contains("Text=\"{Binding RankingReason}\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Binding=\"{Binding HasRankingReason}\"", xaml, StringComparison.Ordinal);
 
+        var settings = Read("src", "AIEverything.App", "ContentSettingsWindow.xaml");
+        Assert.Contains("随机盐加盐的文件键、父目录键、扩展名和每日权重聚合", settings, StringComparison.Ordinal);
+        Assert.Contains("保留 30 天", settings, StringComparison.Ordinal);
         var main = Read("src", "AIEverything.App", "MainWindow.xaml.cs");
-        Assert.Contains("BehaviorDisclosureAcknowledged", main, StringComparison.Ordinal);
+        Assert.DoesNotContain("BehaviorDisclosureBanner", main, StringComparison.Ordinal);
         Assert.Contains("RankingReason = value.RankingReason", main, StringComparison.Ordinal);
         Assert.Contains("HasRankingReason", main, StringComparison.Ordinal);
 
@@ -335,11 +334,11 @@ public sealed class StandaloneProductContractTests
         var readme = Read("README.md");
         var portableReadme = Read("docs", "STANDALONE-README.txt");
         var privacy = Read("PRIVACY.md");
-        Assert.Contains("DeepSeek 默认关闭", readme, StringComparison.Ordinal);
+        Assert.Contains("DeepSeek 默认启用", readme, StringComparison.Ordinal);
         Assert.Contains("本地 MiniLM", readme, StringComparison.Ordinal);
         foreach (var text in new[] { portableReadme, privacy })
         {
-            Assert.Contains("DeepSeek 默认关闭", text, StringComparison.Ordinal);
+            Assert.Contains("DeepSeek 默认启用", text, StringComparison.Ordinal);
             Assert.Contains("最多 200 字片段", text, StringComparison.Ordinal);
             Assert.Contains("至少 3 个 Eligible", text, StringComparison.Ordinal);
             Assert.Contains("无 Exact", text, StringComparison.Ordinal);

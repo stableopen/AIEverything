@@ -50,7 +50,7 @@
                         <TextBlock Text="&#xE721;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
                                    FontSize="15" Foreground="{StaticResource MutedTextBrush}"
                                    VerticalAlignment="Center" />
-                        <TextBlock Grid.Column="1" Text="华北区域目标"
+                        <TextBlock x:Name="SearchQueryText" Grid.Column="1" Text="华北区域目标"
                                    FontSize="15" VerticalAlignment="Center" />
                     </Grid>
                 </Border>
@@ -78,13 +78,25 @@
             </StackPanel>
         </Border>
 
-        <Border Grid.Row="2" Margin="16,12" Style="{StaticResource CardStyle}" ClipToBounds="True">
+        <Border x:Name="EmptyContentBanner" Grid.Row="2" VerticalAlignment="Top"
+                Background="{StaticResource BrandSubtleBrush}" BorderBrush="#C9E0F5"
+                BorderThickness="0,0,0,1" Padding="20,10" Visibility="Collapsed">
+            <DockPanel LastChildFill="True">
+                <Button DockPanel.Dock="Right" Margin="16,0,0,0"
+                        Style="{StaticResource SecondaryButtonStyle}" Content="开启正文" />
+                <TextBlock Text="文件名搜索已可用。开启正文搜索，可搜索 Word、TXT 和 Markdown 内容。"
+                           TextWrapping="Wrap" VerticalAlignment="Center"
+                           Foreground="#244663" FontSize="11.5" FontWeight="SemiBold" />
+            </DockPanel>
+        </Border>
+
+        <Border x:Name="ResultsCard" Grid.Row="2" Margin="16,12" Style="{StaticResource CardStyle}" ClipToBounds="True">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="35" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <Grid Grid.Row="0" Background="{StaticResource SurfaceAltBrush}">
+                <Grid x:Name="ResultsHeader" Grid.Row="0" Background="{StaticResource SurfaceAltBrush}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="13*" />
                         <ColumnDefinition Width="7*" />
@@ -96,7 +108,7 @@
                     <Border Grid.ColumnSpan="2" VerticalAlignment="Bottom" Height="1"
                             Background="{StaticResource BorderBrush}" />
                 </Grid>
-                <StackPanel Grid.Row="1">
+                <StackPanel x:Name="ResultsItems" Grid.Row="1">
                     <Border Background="{StaticResource ResultSelectionBrush}"
                             BorderBrush="{StaticResource ResultSelectionBorderBrush}" BorderThickness="0,0,0,1">
                         <Grid Height="82">
@@ -170,7 +182,7 @@
 
         <Border Grid.Row="3" Background="{StaticResource SurfaceBrush}"
                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="16,0">
-            <TextBlock Text="找到 3 项 · 智能排序推荐" FontWeight="SemiBold"
+            <TextBlock x:Name="StatusText" Text="找到 3 项 · 智能排序推荐" FontWeight="SemiBold"
                        Foreground="{StaticResource SecondaryTextBrush}" VerticalAlignment="Center" />
         </Border>
     </Grid>

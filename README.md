@@ -77,7 +77,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build-standalone.ps1
 | 正文定位 | TXT 行号；Markdown 标题路径和行号；Word 标题路径、段落或表格坐标 |
 | 结果操作 | 只读预览、打开、资源管理器定位、复制引用 |
 | 本地排序 | 行为偏好 + 内置 MiniLM Top10 重排 |
-| 云端排序 | DeepSeek，可选且默认关闭 |
+| 云端排序 | DeepSeek 歧义增强，默认启用、无凭据时自动回退本地 |
 
 正文索引默认排除 Windows、Program Files、ProgramData、AppData、临时/缓存/依赖/构建目录、其他用户目录、危险文件属性和整个代码仓库子树。这些限制不影响按文件名查找相应文件。
 
@@ -86,7 +86,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build-standalone.ps1
 - 文件名搜索、正文索引和本地智能排序均可离线运行。
 - 提取后的正文保存在 `%LOCALAPPDATA%\AIEverything\content.db`，行为聚合保存在 `ranking.db`；两者位于本机且未单独加密。
 - 行为库不保存原始查询、明文路径或正文，只保存随机盐加盐后的文件/目录键、扩展名和每日聚合。
-- DeepSeek 默认关闭。只有用户接受联网披露、主动启用并配置凭据，且本地模型确认查询存在歧义时才可能调用。
+- DeepSeek 默认启用。只有 Windows 凭据管理器中已配置凭据，且本地模型确认查询存在歧义时才可能调用；无凭据或调用失败时静默使用本地排序。
 - 软件不会修改、移动或删除用户源文件。
 
 完整数据边界见 [PRIVACY.md](PRIVACY.md)，安全问题请参阅 [SECURITY.md](SECURITY.md)。

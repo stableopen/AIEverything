@@ -189,33 +189,6 @@
         </Border>
 
         <StackPanel Grid.Row="2">
-            <Border x:Name="BehaviorDisclosureBanner"
-                    AutomationProperties.AutomationId="BehaviorDisclosureBanner"
-                    Background="#FFF8E7" BorderBrush="#EBD9A5" BorderThickness="0,0,0,1"
-                    Padding="20,10" Visibility="Collapsed">
-                <DockPanel LastChildFill="True">
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="16,0,0,0">
-                        <Button x:Name="BehaviorSettingsButton"
-                                AutomationProperties.AutomationId="BehaviorSettingsButton"
-                                Style="{StaticResource SecondaryButtonStyle}"
-                                Content="设置与清除" Click="BehaviorSettingsButton_Click" />
-                        <Button x:Name="DisableBehaviorButton"
-                                AutomationProperties.AutomationId="DisableBehaviorButton"
-                                Margin="8,0,0,0" Style="{StaticResource SecondaryButtonStyle}"
-                                Content="关闭学习" Click="DisableBehaviorButton_Click" />
-                        <Button x:Name="AcknowledgeBehaviorButton"
-                                AutomationProperties.AutomationId="AcknowledgeBehaviorButton"
-                                Margin="8,0,0,0" Style="{StaticResource PrimaryButtonStyle}"
-                                Content="知道了" Click="AcknowledgeBehaviorButton_Click" />
-                    </StackPanel>
-                    <TextBlock TextWrapping="Wrap" VerticalAlignment="Center"
-                               Foreground="#5B4818" FontSize="11.5">
-                        <Run FontWeight="SemiBold" Text="本地排序学习默认开启。" />
-                        <Run Text=" 只记录成功操作的每日权重聚合：打开/复制计 1，定位计 0.5；单独预览不计分，预览后成功打开/复制再加 0.25。仅保存随机盐加盐的文件键、父目录键、扩展名，保留 30 天；不保存查询、正文、片段或明文路径，可关闭并随时清除。" />
-                    </TextBlock>
-                </DockPanel>
-            </Border>
-
             <Border x:Name="ContentDisclosureBanner"
                     Background="{StaticResource BrandSubtleBrush}"
                     BorderBrush="#C9E0F5" BorderThickness="0,0,0,1"
@@ -228,8 +201,7 @@
                             Content="启用正文" Click="EnableContentButton_Click" />
                     <TextBlock TextWrapping="Wrap" VerticalAlignment="Center"
                                Foreground="#244663" FontSize="11.5">
-                        <Run FontWeight="SemiBold" Text="文件名搜索已可使用。" />
-                        <Run Text=" 启用后将发现本机固定磁盘中的 DOCX、TXT、MD、MARKDOWN；正文索引仅保存在本机未单独加密的 SQLite，不修改源文件。可选 DeepSeek 的片段外发需在设置中另行披露并主动开启。" />
+                        <Run FontWeight="SemiBold" Text="文件名搜索已可用。开启正文搜索，可搜索 Word、TXT 和 Markdown 内容。" />
                     </TextBlock>
                 </DockPanel>
             </Border>
@@ -373,27 +345,6 @@
                         </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
-
-                <StackPanel x:Name="EmptyPanel" Grid.RowSpan="2"
-                            MaxWidth="520" HorizontalAlignment="Center"
-                            VerticalAlignment="Center">
-                    <Border Width="42" Height="42" CornerRadius="21"
-                            Background="{StaticResource BrandSoftBrush}"
-                            HorizontalAlignment="Center" Margin="0,0,0,13">
-                        <TextBlock Text="&#xE721;"
-                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                   FontSize="18" Foreground="{StaticResource BrandBrush}"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <TextBlock x:Name="EmptyTitle" Text="输入关键词开始搜索"
-                               FontSize="18" FontWeight="SemiBold"
-                               HorizontalAlignment="Center" />
-                    <TextBlock x:Name="EmptyHint"
-                               Text="查找文件名和路径，或定位 Word、TXT、Markdown 中的具体段落"
-                               Foreground="{StaticResource MutedTextBrush}"
-                               Margin="0,7,0,0" TextAlignment="Center"
-                               TextWrapping="Wrap" />
-                </StackPanel>
 
                 <ProgressBar x:Name="SearchProgress" Grid.Row="0" Grid.RowSpan="2"
                              Height="2" VerticalAlignment="Top"
