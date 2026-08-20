@@ -142,6 +142,14 @@ public sealed class StandaloneProductContractTests
     }
 
     [Fact]
+    public void V104_application_startup_runs_the_silent_mail_synchronization_path()
+    {
+        var main = Read("src", "AIEverything.App", "MainWindow.xaml.cs");
+        Assert.Contains("_ = InitializeMailAsync(_lifetime.Token);", main, StringComparison.Ordinal);
+        Assert.Contains("await _mail.SynchronizeOnStartupAsync(token);", main, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void V101_status_and_feedback_are_short_and_actionable()
     {
         var main = Read("src", "AIEverything.App", "MainWindow.xaml.cs");
@@ -194,7 +202,7 @@ public sealed class StandaloneProductContractTests
         Assert.Contains("本地语义匹配", view, StringComparison.Ordinal);
         Assert.Contains("找到 3 项 · 智能排序推荐", view, StringComparison.Ordinal);
 
-        var image = Path.Combine(Root, "docs", "images", "aieverything-1.0.2-docx.png");
+        var image = Path.Combine(Root, "docs", "images", "aieverything-1.0.4-docx.png");
         Assert.True(File.Exists(image), image);
         var bytes = File.ReadAllBytes(image);
         Assert.True(bytes.Length > 20_000, $"Screenshot is unexpectedly small: {bytes.Length}");
@@ -300,9 +308,9 @@ public sealed class StandaloneProductContractTests
             "src", "AIEverything.ExtractorWorker", "AIEverything.ExtractorWorker.csproj");
         foreach (var project in new[] { appProject, daemonProject, workerProject })
         {
-            Assert.Contains("<Version>1.0.3</Version>", project, StringComparison.Ordinal);
-            Assert.Contains("<AssemblyVersion>1.0.3.0</AssemblyVersion>", project, StringComparison.Ordinal);
-            Assert.Contains("<FileVersion>1.0.3.0</FileVersion>", project, StringComparison.Ordinal);
+            Assert.Contains("<Version>1.0.4</Version>", project, StringComparison.Ordinal);
+            Assert.Contains("<AssemblyVersion>1.0.4.0</AssemblyVersion>", project, StringComparison.Ordinal);
+            Assert.Contains("<FileVersion>1.0.4.0</FileVersion>", project, StringComparison.Ordinal);
         }
         Assert.Contains("Models\\mmarco-mMiniLMv2-L12-H384-v1", appProject, StringComparison.Ordinal);
         Assert.Contains("ExcludeFromSingleFile=\"true\"", appProject, StringComparison.Ordinal);
@@ -312,8 +320,8 @@ public sealed class StandaloneProductContractTests
             StringComparison.Ordinal);
 
         var build = Read("scripts", "build-standalone.ps1");
-        Assert.Contains("AIEverything-1.0.3-win-x64.zip", build, StringComparison.Ordinal);
-        Assert.Contains("AIEverything-1.0.3-win-x64.zip.sha256", build, StringComparison.Ordinal);
+        Assert.Contains("AIEverything-1.0.4-win-x64.zip", build, StringComparison.Ordinal);
+        Assert.Contains("AIEverything-1.0.4-win-x64.zip.sha256", build, StringComparison.Ordinal);
         Assert.DoesNotContain("AIEverything-V0.21-win-x64.zip", build, StringComparison.Ordinal);
         Assert.Contains("Assert-ModelAssets", build, StringComparison.Ordinal);
         Assert.Contains("Assert-ZipMatchesDirectory", build, StringComparison.Ordinal);
@@ -381,11 +389,11 @@ public sealed class StandaloneProductContractTests
         }
         Assert.DoesNotContain("AIEverything 不联网", portableReadme, StringComparison.Ordinal);
 
-        var releaseNotes = Read("docs", "releases", "1.0.2.md");
+        var releaseNotes = Read("docs", "releases", "1.0.4.md");
         Assert.Contains("开始使用", releaseNotes, StringComparison.Ordinal);
         Assert.Contains(".docx", releaseNotes, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("https://github.com/stableopen/AIEverything/issues/new", releaseNotes, StringComparison.Ordinal);
-        Assert.Contains("AIEverything-1.0.3-win-x64.zip", readme, StringComparison.Ordinal);
+        Assert.Contains("AIEverything-1.0.4-win-x64.zip", readme, StringComparison.Ordinal);
         Assert.Contains("![AIEverything 工作原理](docs/images/aieverything-workflow.svg)", readme, StringComparison.Ordinal);
         Assert.DoesNotContain("Everything SDK ──", readme, StringComparison.Ordinal);
         Assert.DoesNotContain("点击“启用正文”", readme, StringComparison.Ordinal);

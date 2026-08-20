@@ -143,10 +143,10 @@
                 <StackPanel>
                     <TextBlock x:Name="MailStatusText"
                                AutomationProperties.AutomationId="MailStatusText"
-                               Text="默认关闭" FontWeight="SemiBold" />
+                               Text="默认开启" FontWeight="SemiBold" />
                     <TextBlock x:Name="MailDetailText"
                                AutomationProperties.AutomationId="MailDetailText"
-                               Text="可选读取 Classic Outlook 默认收件箱和已发送中最近 100 封邮件。"
+                               Text="启动后自动只读同步 Classic Outlook 默认收件箱和已发送中最近 100 封邮件。"
                                Margin="0,6,0,0" Foreground="{StaticResource MutedTextBrush}"
                                TextWrapping="Wrap" />
                     <WrapPanel Margin="0,11,0,0">

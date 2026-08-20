@@ -187,7 +187,7 @@ public partial class ContentSettingsWindow : Window
         }
         else
         {
-            MailDetailText.Text = "可选读取 Classic Outlook 默认收件箱和已发送中最近 100 封邮件。";
+            MailDetailText.Text = "启动后自动只读同步 Classic Outlook 默认收件箱和已发送中最近 100 封邮件。";
             MailDetailText.Foreground = (Brush)FindResource("MutedTextBrush");
         }
 

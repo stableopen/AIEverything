@@ -8,15 +8,54 @@ public sealed class MailSearchModuleTests : IDisposable
         Path.GetTempPath(), $"aieverything-mail-tests-{Guid.NewGuid():N}");
 
     [Fact]
-    public async Task New_mail_index_is_disabled_until_user_enables_and_synchronizes()
+    public async Task New_mail_index_defaults_to_enabled()
     {
         await using var module = CreateModule(new FakeMailSource([]));
 
         var status = await module.GetStatusAsync(CancellationToken.None);
 
-        Assert.False(status.Enabled);
+        Assert.True(status.Enabled);
         Assert.Equal(0, status.IndexedMessages);
         Assert.Empty(await module.SearchAsync("anything", 20, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task V103_disabled_database_is_enabled_once_by_v104_default_migration()
+    {
+        await CreateV103SettingsAsync(enabled: false);
+
+        await using var module = CreateModule(new FakeMailSource([]));
+        var status = await module.GetStatusAsync(CancellationToken.None);
+
+        Assert.True(status.Enabled);
+    }
+
+    [Fact]
+    public async Task User_disable_after_v104_migration_survives_restart()
+    {
+        await CreateV103SettingsAsync(enabled: false);
+        await using (var module = CreateModule(new FakeMailSource([])))
+        {
+            Assert.True((await module.GetStatusAsync(CancellationToken.None)).Enabled);
+            await module.ExecuteAsync(MailIndexCommand.Disable, CancellationToken.None);
+        }
+
+        await using var reopened = CreateModule(new FakeMailSource([]));
+        Assert.False((await reopened.GetStatusAsync(CancellationToken.None)).Enabled);
+    }
+
+    [Fact]
+    public async Task Startup_path_synchronizes_recent_mail_when_enabled()
+    {
+        var source = new FakeMailSource(
+            [Message("store-a", "entry-1", "Startup subject", "startup searchable body")]);
+        await using var module = CreateModule(source);
+
+        var result = await module.SynchronizeOnStartupAsync(CancellationToken.None);
+
+        Assert.True(result.Status.Enabled);
+        Assert.Equal(1, result.Status.IndexedMessages);
+        Assert.Equal(1, source.ReadCount);
     }
 
     [Fact]
@@ -70,6 +109,24 @@ public sealed class MailSearchModuleTests : IDisposable
     {
         Directory.CreateDirectory(_directory);
         return new MailSearchModule(Path.Combine(_directory, "mail.db"), source);
+    }
+
+    private async Task CreateV103SettingsAsync(bool enabled)
+    {
+        Directory.CreateDirectory(_directory);
+        var path = Path.Combine(_directory, "mail.db");
+        var connectionString = new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder
+        {
+            DataSource = path,
+            Mode = Microsoft.Data.Sqlite.SqliteOpenMode.ReadWriteCreate,
+            Pooling = false
+        }.ToString();
+        await using var connection = new Microsoft.Data.Sqlite.SqliteConnection(connectionString);
+        await connection.OpenAsync();
+        await using var command = connection.CreateCommand();
+        command.CommandText = "CREATE TABLE settings(key TEXT PRIMARY KEY,value TEXT NOT NULL);INSERT INTO settings(key,value) VALUES('enabled',$enabled);";
+        command.Parameters.AddWithValue("$enabled", enabled ? "true" : "false");
+        await command.ExecuteNonQueryAsync();
     }
 
     private static MailMessageSnapshot Message(

@@ -66,6 +66,7 @@ public interface IMailSearch
 public interface IMailSearchModule : IMailSearch
 {
     Task<MailIndexStatus> GetStatusAsync(CancellationToken cancellationToken);
+    Task<MailCommandResult> SynchronizeOnStartupAsync(CancellationToken cancellationToken);
     Task<MailCommandResult> ExecuteAsync(
         MailIndexCommand command,
         CancellationToken cancellationToken);

@@ -91,6 +91,7 @@ public partial class MainWindow : Window
         _statusTimer.Start();
         _ = InitializeEverythingAsync(_lifetime.Token);
         _ = InitializeContentAsync(_lifetime.Token);
+        _ = InitializeMailAsync(_lifetime.Token);
         if (_rankingOptions.LocalModelEnabled)
         {
             _ = WarmLocalModelAsync(_lifetime.Token);
@@ -139,6 +140,21 @@ public partial class MainWindow : Window
             RenderContentStatus(_contentStatus);
         }
         catch (Exception exception) when (exception is ContentIndexException or IOException) { }
+    }
+
+    private async Task InitializeMailAsync(CancellationToken token)
+    {
+        try
+        {
+            await _mail.SynchronizeOnStartupAsync(token);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch
+        {
+            // Outlook availability is reported only in Settings; file search stays usable.
+        }
     }
 
     private void RenderContentStatus(ContentIndexStatus status)

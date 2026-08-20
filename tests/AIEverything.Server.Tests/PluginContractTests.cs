@@ -16,7 +16,7 @@ public sealed class PluginContractTests
     public void Readme_discloses_v100_local_text_index_and_optional_cloud_boundary()
     {
         var readme = File.ReadAllText(Path.Combine(Root, "README.md"));
-        Assert.Contains("1.0.3", readme);
+        Assert.Contains("1.0.4", readme);
         Assert.Contains("固定 NTFS/ReFS", readme);
         Assert.Contains(".markdown", readme);
         Assert.Contains("未单独加密", readme);
@@ -26,7 +26,7 @@ public sealed class PluginContractTests
 
         using var manifest = System.Text.Json.JsonDocument.Parse(
             File.ReadAllText(Path.Combine(Root, ".codex-plugin", "plugin.json")));
-        Assert.Equal("1.0.3", manifest.RootElement.GetProperty("version").GetString());
+        Assert.Equal("1.0.4", manifest.RootElement.GetProperty("version").GetString());
         Assert.Equal(
             new[] { "Read" },
             manifest.RootElement.GetProperty("interface").GetProperty("capabilities")

@@ -9,6 +9,7 @@ namespace AIEverything.Desktop.Mail;
 public sealed class MailSearchModule : IMailSearchModule, IAsyncDisposable
 {
     public const int MaximumMessages = 100;
+    internal const string DefaultEnabledRevision = "default-enabled-1.0.4";
 
     private readonly string _databasePath;
     private readonly string _connectionString;
@@ -64,6 +65,13 @@ public sealed class MailSearchModule : IMailSearchModule, IAsyncDisposable
             default:
                 throw new ArgumentOutOfRangeException(nameof(command));
         }
+    }
+
+    public async Task<MailCommandResult> SynchronizeOnStartupAsync(
+        CancellationToken cancellationToken)
+    {
+        await EnsureInitializedAsync(cancellationToken);
+        return await SynchronizeCoreAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<MailSearchHit>> SearchAsync(
@@ -175,6 +183,11 @@ public sealed class MailSearchModule : IMailSearchModule, IAsyncDisposable
                 );
                 INSERT OR IGNORE INTO settings(key,value) VALUES('enabled','false');
                 INSERT OR IGNORE INTO settings(key,value) VALUES('last_skipped','0');
+                UPDATE settings SET value='true'
+                WHERE key='enabled' AND NOT EXISTS(
+                    SELECT 1 FROM settings WHERE key='mail_default_revision');
+                INSERT OR IGNORE INTO settings(key,value)
+                VALUES('mail_default_revision','default-enabled-1.0.4');
                 """;
             await command.ExecuteNonQueryAsync();
         }, CancellationToken.None);

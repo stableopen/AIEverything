@@ -1,15 +1,15 @@
-# AIEverything 1.0.3 隐私说明
+# AIEverything 1.0.4 隐私说明
 
 ## 默认状态
 
-AIEverything 的文件名搜索、正文索引、行为排序和 ONNX 语义排序默认都在本机完成。新安装会自动启用 DOCX、TXT 和 Markdown 正文索引；曾在设置中明确关闭的用户升级后仍保持关闭。行为排序和本地模型默认开启，DeepSeek 默认启用；DeepSeek 只有在 Windows 凭据管理器已保存凭据且下列全部搜索门控满足时才会按需读取凭据并联网。没有凭据时静默使用本地排序。
+AIEverything 的文件名搜索、正文索引、邮件索引、行为排序和 ONNX 语义排序默认都在本机完成。新安装会自动启用 DOCX、TXT、Markdown 正文索引，并在启动后只读同步 Classic Outlook 最近 100 封邮件；正文索引曾被明确关闭的用户升级后仍保持关闭。1.0.3 用户升级到 1.0.4 时邮件索引会默认启用一次，此后手动关闭会持续生效。行为排序和本地模型默认开启，DeepSeek 默认启用；DeepSeek 只有在 Windows 凭据管理器已保存凭据且下列全部搜索门控满足时才会按需读取凭据并联网。没有凭据时静默使用本地排序。
 
 ## 本机数据
 
 - `%LOCALAPPDATA%\AIEverything\content.db`：DOCX、TXT、MD、MARKDOWN 的本机 SQLite/FTS 正文索引和 Word 位置图，未单独加密。
 - `%LOCALAPPDATA%\AIEverything\ranking.db`：只保存由随机盐加盐的文件键、父目录键、扩展名和每日权重聚合，保留 30 天；不保存查询、正文、片段或明文路径。打开/复制权重为 `1.0`，定位为 `0.5`，单独预览为 `0`，预览后再打开/复制额外 `+0.25`。聚合按 30 天半衰衰减，并以 `file + 0.30 × parentDirectory + 0.10 × extension` 形成亲和。用户清除时会删除聚合并轮换随机盐。
 - `%LOCALAPPDATA%\AIEverything\settings.json`：窗口状态、排序开关和“已知晓行为学习披露”布尔值；不保存查询、API key、token 或其他凭据。
-- `%LOCALAPPDATA%\AIEverything\mail.db`：用户在设置中开启后，保存 Classic Outlook 默认收件箱和已发送中最近 100 封邮件的主题、人员、时间、文件夹、纯文本正文、附件名称以及用于打开原邮件的 Outlook 标识。默认关闭，未单独加密，可随时关闭或清除；不会发送、删除、移动或修改邮件。
+- `%LOCALAPPDATA%\AIEverything\mail.db`：默认保存 Classic Outlook 默认收件箱和已发送中最近 100 封邮件的主题、人员、时间、文件夹、纯文本正文、附件名称以及用于打开原邮件的 Outlook 标识。未单独加密，可随时关闭或清除；不会发送、删除、移动或修改邮件。
 
 AIEverything 不修改、删除或移动被搜索的源文件。
 
