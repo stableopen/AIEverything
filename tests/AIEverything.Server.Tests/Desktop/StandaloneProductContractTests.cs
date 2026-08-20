@@ -130,6 +130,37 @@ public sealed class StandaloneProductContractTests
     }
 
     [Fact]
+    public void V101_promotion_screenshot_is_explicit_offline_and_checked_in()
+    {
+        var app = Read("src", "AIEverything.App", "App.xaml.cs");
+        var renderer = Read("src", "AIEverything.App", "PromotionScreenshotRenderer.cs");
+        var view = Read("src", "AIEverything.App", "PromotionScreenshotView.xaml");
+
+        Assert.Contains("--render-promotion-screenshot", app, StringComparison.Ordinal);
+        Assert.Contains("Path.IsPathFullyQualified", app, StringComparison.Ordinal);
+        Assert.DoesNotContain("StartupUri=", Read("src", "AIEverything.App", "App.xaml"), StringComparison.Ordinal);
+        Assert.Contains("MainWindow = new MainWindow();", app, StringComparison.Ordinal);
+        Assert.Contains("MainWindow.Show();", app, StringComparison.Ordinal);
+        Assert.Contains("RenderTargetBitmap", renderer, StringComparison.Ordinal);
+        Assert.Contains("PngBitmapEncoder", renderer, StringComparison.Ordinal);
+        Assert.DoesNotContain("HttpListener", renderer, StringComparison.Ordinal);
+        Assert.DoesNotContain("ContentIndexStore", renderer, StringComparison.Ordinal);
+        Assert.Contains("Quarterly-Sales-Plan.docx", view, StringComparison.Ordinal);
+        Assert.Contains("Sales Plan · paragraph 2", view, StringComparison.Ordinal);
+        Assert.Contains("RegionalTargetCanary", view, StringComparison.Ordinal);
+        Assert.Contains("本地语义匹配", view, StringComparison.Ordinal);
+        Assert.Contains("找到 3 项 · 智能排序推荐", view, StringComparison.Ordinal);
+
+        var image = Path.Combine(Root, "docs", "images", "aieverything-1.0.1-docx.png");
+        Assert.True(File.Exists(image), image);
+        var bytes = File.ReadAllBytes(image);
+        Assert.True(bytes.Length > 20_000, $"Screenshot is unexpectedly small: {bytes.Length}");
+        Assert.Equal(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 }, bytes[..8]);
+        Assert.Equal(900, ReadBigEndianInt(bytes, 16));
+        Assert.Equal(560, ReadBigEndianInt(bytes, 20));
+    }
+
+    [Fact]
     public void V021_ranking_settings_are_scrollable_disclosed_and_safe_by_default()
     {
         var settings = Read("src", "AIEverything.App", "ContentSettingsWindow.xaml");
@@ -329,6 +360,9 @@ public sealed class StandaloneProductContractTests
     }
 
     private static string Read(params string[] path) => File.ReadAllText(Path.Combine([Root, .. path]));
+    private static int ReadBigEndianInt(byte[] bytes, int offset) =>
+        (bytes[offset] << 24) | (bytes[offset + 1] << 16) |
+        (bytes[offset + 2] << 8) | bytes[offset + 3];
     private static string FindRoot()
     {
         var current = new DirectoryInfo(AppContext.BaseDirectory);
