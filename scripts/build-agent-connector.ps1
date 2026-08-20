@@ -13,7 +13,7 @@ $connector = [System.IO.Path]::GetFullPath(
 $stage = [System.IO.Path]::GetFullPath((Join-Path $distRoot '.agent-plugin-stage'))
 $packageRoot = Join-Path $stage 'aieverything'
 $zip = [System.IO.Path]::GetFullPath(
-    (Join-Path $distRoot 'AIEverything-Agent-Plugin-1.0.1.zip'))
+    (Join-Path $distRoot 'AIEverything-Agent-Plugin-1.0.2.zip'))
 $rootPrefix = $root.TrimEnd([System.IO.Path]::DirectorySeparatorChar) +
     [System.IO.Path]::DirectorySeparatorChar
 

@@ -53,8 +53,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build-standalone.ps1
 输出：
 
 - `dist\standalone\win-x64\`
-- `dist\AIEverything-1.0.1-win-x64.zip`
-- `dist\AIEverything-1.0.1-win-x64.zip.sha256`
+- `dist\AIEverything-1.0.2-win-x64.zip`
+- `dist\AIEverything-1.0.2-win-x64.zip.sha256`
 
 `dist` 被 Git 忽略。构建脚本不要求干净 clone 存在旧发布包；如果本机保留了受保护的历史包，脚本仍会校验其哈希。模型缺失时会提示先运行 `scripts\fetch-model.ps1`。
 

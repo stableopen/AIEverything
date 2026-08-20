@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520"
+     role="img" aria-labelledby="workflow-title workflow-desc">
+  <title id="workflow-title">AIEverything 搜索流程</title>
+  <desc id="workflow-desc">搜索词同时进入 Everything 全盘文件名搜索和本地正文索引，结果合并净化后按常用偏好、本地语义和可选 DeepSeek 智能排序，优先显示最可能需要的结果。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1671C5" />
+    </marker>
+    <style>
+      .canvas { fill: #FFFFFF; stroke: #D0D7DE; }
+      .primary { fill: #1671C5; stroke: #1671C5; }
+      .panel { fill: #F6FAFE; stroke: #8BBBE5; }
+      .result { fill: #EAF4FD; stroke: #1671C5; }
+      .line { fill: none; stroke: #1671C5; stroke-width: 3; marker-end: url(#arrow); }
+      .title { fill: #1F2328; font: 600 21px "Segoe UI", "Microsoft YaHei", sans-serif; }
+      .label { fill: #1F2328; font: 600 19px "Segoe UI", "Microsoft YaHei", sans-serif; }
+      .small { fill: #57606A; font: 14px "Segoe UI", "Microsoft YaHei", sans-serif; }
+      .white { fill: #FFFFFF; font: 600 20px "Segoe UI", "Microsoft YaHei", sans-serif; }
+      .chip { fill: #FFFFFF; stroke: #8BBBE5; }
+      .chiptext { fill: #235A88; font: 14px "Segoe UI", "Microsoft YaHei", sans-serif; }
+    </style>
+  </defs>
+
+  <rect class="canvas" x="1" y="1" width="1198" height="518" rx="14" />
+  <text class="title" x="40" y="54">从搜索词到最可能需要的结果</text>
+  <text class="small" x="40" y="82">文件名与正文同时召回，本机完成合并、净化和优先级判断</text>
+
+  <rect class="primary" x="40" y="222" width="136" height="72" rx="10" />
+  <text class="white" x="108" y="266" text-anchor="middle">搜索词</text>
+
+  <path class="line" d="M176 258 H210 V157 H242" />
+  <path class="line" d="M176 258 H210 V359 H242" />
+
+  <rect class="panel" x="244" y="112" width="250" height="96" rx="10" />
+  <text class="label" x="369" y="151" text-anchor="middle">全盘文件名</text>
+  <text class="small" x="369" y="180" text-anchor="middle">Everything</text>
+
+  <rect class="panel" x="244" y="310" width="250" height="96" rx="10" />
+  <text class="label" x="369" y="348" text-anchor="middle">Word TXT Markdown 正文</text>
+  <text class="small" x="369" y="378" text-anchor="middle">本地索引</text>
+
+  <path class="line" d="M494 160 H526 V236 H554" />
+  <path class="line" d="M494 358 H526 V280 H554" />
+
+  <rect class="panel" x="556" y="216" width="150" height="84" rx="10" />
+  <text class="label" x="631" y="252" text-anchor="middle">合并净化</text>
+  <text class="small" x="631" y="278" text-anchor="middle">同一文件只留一项</text>
+
+  <path class="line" d="M706 258 H750" />
+
+  <rect class="panel" x="752" y="142" width="250" height="232" rx="10" />
+  <text class="label" x="877" y="181" text-anchor="middle">智能排序</text>
+  <text class="small" x="877" y="207" text-anchor="middle">只调整已有候选的先后</text>
+  <rect class="chip" x="790" y="232" width="174" height="34" rx="7" />
+  <text class="chiptext" x="877" y="254" text-anchor="middle">常用偏好</text>
+  <rect class="chip" x="790" y="278" width="174" height="34" rx="7" />
+  <text class="chiptext" x="877" y="300" text-anchor="middle">本地语义</text>
+  <rect class="chip" x="790" y="324" width="174" height="34" rx="7" />
+  <text class="chiptext" x="877" y="346" text-anchor="middle">可选 DeepSeek</text>
+
+  <path class="line" d="M1002 258 H1040" />
+
+  <g aria-label="最可能结果优先">
+    <rect class="result" x="1042" y="211" width="126" height="94" rx="10" />
+    <text class="label" x="1105" y="249" text-anchor="middle">最可能结果</text>
+    <text class="label" x="1105" y="278" text-anchor="middle">优先</text>
+  </g>
+</svg>

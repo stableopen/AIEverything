@@ -121,9 +121,6 @@ public partial class MainWindow : Window
             await _daemonManager.EnsureRunningAsync(_contentClient, token);
             await _daemonManager.WaitUntilReadyAsync(_contentClient, TimeSpan.FromSeconds(8), token);
             _contentStatus = await _contentClient.GetStatusAsync(token);
-            ContentDisclosureBanner.Visibility = _contentStatus.DisclosureAccepted
-                ? Visibility.Collapsed
-                : Visibility.Visible;
             await RefreshStatusAsync();
         }
         catch (Exception exception) when (exception is not OperationCanceledException) { }
@@ -146,7 +143,7 @@ public partial class MainWindow : Window
         var message = !filenameReady
             ? "文件名服务暂时不可用，正在重试；已有正文仍可搜索。"
             : !status.Enabled || !status.DisclosureAccepted
-                ? "文件名搜索已就绪。开启正文索引后可搜索 Word、TXT 和 Markdown。"
+                ? "正文搜索已关闭，可在设置中开启；文件名搜索仍可用。"
                 : status.Paused
                     ? "正文索引已暂停，已有内容仍可搜索。"
                     : status.QueuedDocuments > 0
@@ -366,22 +363,6 @@ public partial class MainWindow : Window
             await RefreshStatusAsync();
         }
         catch (Exception exception) { SetQueryStatus($"设置失败：{exception.Message}"); }
-    }
-
-    private async void EnableContentButton_Click(object sender, RoutedEventArgs e)
-    {
-        EnableContentButton.IsEnabled = false;
-        try
-        {
-            _contentStatus = await _contentClient.ConfigureAsync(true, true, _lifetime.Token);
-            ContentDisclosureBanner.Visibility = Visibility.Collapsed;
-            await RefreshStatusAsync();
-        }
-        catch (Exception exception)
-        {
-            SetQueryStatus($"启用正文失败：{exception.Message}");
-            EnableContentButton.IsEnabled = true;
-        }
     }
 
     private async void Window_PreviewKeyDown(object sender, KeyEventArgs e)

@@ -1,15 +1,15 @@
-AIEverything 1.0.1（Windows x64）
+AIEverything 1.0.2（Windows x64）
 ==============================
 
 所有文件和文件夹都可以按名称/路径搜索；DOCX、TXT、MD、MARKDOWN 还可以搜索正文。
 
 使用：
 1. 双击 AIEverything.exe。
-2. 首次启动点击“启用正文”，可自动索引本机 ready 的 fixed NTFS/ReFS 磁盘，不需要添加目录；详细存储与联网边界可在设置和 PRIVACY.md 查看。
+2. 新安装会自动在后台索引本机 ready 的 fixed NTFS/ReFS 磁盘，不需要添加目录；文件名搜索不等待正文索引。
 3. 搜索结果支持预览、打开、定位和复制路径/位置引用；F5 立即同步正文。
 4. 行为排序、本地 ONNX 模型和 DeepSeek 歧义增强默认开启；无 DeepSeek 凭据时自动使用本地排序。
 
-1.0.1 智能排序：
+1.0.2 智能排序：
 - 只作用于桌面“全部 / 文件名”；正文、CLI、MCP 不变。
 - 始终保持 Exact > Eligible > Soft；行为学习和本地模型都只处理基线前 10 项，行为最多提升 10 位，本地模型在其中选择 Top5，第 11 项以后逐项不动。
 - ONNX/CPU/运行时/超时失败会回退行为顺序，绝不因此调用云端。
@@ -33,7 +33,7 @@ DeepSeek 默认启用。只有 Windows 凭据管理器已有凭据、本地 ONNX
 
 除上述用户显式开启的可选复排外，搜索与排序不联网。AIEverything 不会修改、删除或移动用户文件。
 
-1.0.1 没有 Outlook、Local Import、剪贴板、Inbox、Teams/WeChat 或手工目录入口。
+1.0.2 没有 Outlook、Local Import、剪贴板、Inbox、Teams/WeChat 或手工目录入口。
 PDF、旧版 DOC、RST、XLSX、PPTX 正文支持不在本版范围。
 
 反馈：https://github.com/stableye/AIEverything/issues/new

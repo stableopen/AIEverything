@@ -188,25 +188,6 @@
             </StackPanel>
         </Border>
 
-        <StackPanel Grid.Row="2">
-            <Border x:Name="ContentDisclosureBanner"
-                    Background="{StaticResource BrandSubtleBrush}"
-                    BorderBrush="#C9E0F5" BorderThickness="0,0,0,1"
-                    Padding="20,10" Visibility="Collapsed">
-                <DockPanel LastChildFill="True">
-                    <Button x:Name="EnableContentButton"
-                            AutomationProperties.AutomationId="EnableContentButton"
-                            DockPanel.Dock="Right" Margin="16,0,0,0"
-                            Style="{StaticResource SecondaryButtonStyle}"
-                            Content="启用正文" Click="EnableContentButton_Click" />
-                    <TextBlock TextWrapping="Wrap" VerticalAlignment="Center"
-                               Foreground="#244663" FontSize="11.5">
-                        <Run FontWeight="SemiBold" Text="文件名搜索已可用。开启正文搜索，可搜索 Word、TXT 和 Markdown 内容。" />
-                    </TextBlock>
-                </DockPanel>
-            </Border>
-        </StackPanel>
-
         <Border Grid.Row="3" Margin="16,12" Style="{StaticResource CardStyle}"
                 ClipToBounds="True">
             <Grid>

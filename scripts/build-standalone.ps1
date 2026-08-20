@@ -8,11 +8,11 @@ $root = [System.IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
 $distRoot = [System.IO.Path]::GetFullPath((Join-Path $root 'dist'))
 $dist = [System.IO.Path]::GetFullPath((Join-Path $distRoot 'standalone\win-x64'))
 $stage = [System.IO.Path]::GetFullPath((Join-Path $distRoot '.standalone-stage'))
-$zip = [System.IO.Path]::GetFullPath((Join-Path $distRoot 'AIEverything-1.0.1-win-x64.zip'))
-$checksum = [System.IO.Path]::GetFullPath((Join-Path $distRoot 'AIEverything-1.0.1-win-x64.zip.sha256'))
+$zip = [System.IO.Path]::GetFullPath((Join-Path $distRoot 'AIEverything-1.0.2-win-x64.zip'))
+$checksum = [System.IO.Path]::GetFullPath((Join-Path $distRoot 'AIEverything-1.0.2-win-x64.zip.sha256'))
 $rootPrefix = $root.TrimEnd([System.IO.Path]::DirectorySeparatorChar) +
     [System.IO.Path]::DirectorySeparatorChar
-$releaseFileVersion = '1.0.1.0'
+$releaseFileVersion = '1.0.2.0'
 $modelDirectoryName = 'mmarco-mMiniLMv2-L12-H384-v1'
 $modelRelativePath = Join-Path 'Models' $modelDirectoryName
 $protectedArchives = @(
@@ -334,13 +334,13 @@ Compress-Archive -Path (Join-Path $dist '*') -DestinationPath $zip -CompressionL
 
 Assert-ZipMatchesDirectory $zip $dist
 $zipHash = (Get-FileHash -LiteralPath $zip -Algorithm SHA256).Hash
-Set-Content -LiteralPath $checksum -Value "$zipHash  AIEverything-1.0.1-win-x64.zip" -Encoding ascii -NoNewline
+Set-Content -LiteralPath $checksum -Value "$zipHash  AIEverything-1.0.2-win-x64.zip" -Encoding ascii -NoNewline
 Assert-ProtectedArchives
 
 Remove-Item -LiteralPath $stage -Recurse -Force
 
 Write-Output "PASS: published standalone AIEverything to $dist"
 Write-Output "PASS: created portable package $zip"
-Write-Output "PASS: created checksum sidecar AIEverything-1.0.1-win-x64.zip.sha256"
+Write-Output "PASS: created checksum sidecar AIEverything-1.0.2-win-x64.zip.sha256"
 Write-Output "PASS: verified model manifest, external assets, licenses, and ZIP byte identity"
 Write-Output "SHA256: $zipHash"
