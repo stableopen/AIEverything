@@ -1,4 +1,5 @@
 using AIEverything.Core;
+using AIEverything.Desktop.Mail;
 
 namespace AIEverything.Desktop;
 
@@ -38,7 +39,8 @@ public sealed record DesktopSearchItem(
     Ranking.RankingProtectedTier RankingTier = Ranking.RankingProtectedTier.Eligible,
     int BaselineIndex = -1,
     double? BaselineScore = null,
-    string? RankingReason = null);
+    string? RankingReason = null,
+    MailIdentity? MailIdentity = null);
 
 public sealed record DesktopSearchResponse(
     string Query,

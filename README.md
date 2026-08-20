@@ -10,7 +10,7 @@
 
 AIEverything 是独立开源项目，不是 voidtools 官方产品，也不隶属于 voidtools。文件名能力基于随包分发的 Everything 1.4 引擎和 SDK；相关版权与许可证归原作者所有。
 
-## 三个核心特点
+## 四个核心特点
 
 ### 1. 像 Everything 一样快速找名字
 
@@ -23,6 +23,10 @@ AIEverything 是独立开源项目，不是 voidtools 官方产品，也不隶�
 ### 3. 结果更少干扰，更接近用户真正想找的内容
 
 高置信度的临时文件和一次性产物不会占据结果列表；系统、依赖、缓存和构建内容降级展示，精确搜索仍可找回。桌面端还会结合本机使用行为和本地 MiniLM 语义重排优化前五项，而不改变原始候选集合。
+
+### 4. 可选搜索 Classic Outlook 邮件
+
+1.0.3 可在设置中手动开启邮件搜索，只读同步默认收件箱和已发送中最近 100 封邮件。主题、人员、正文片段和附件名称保存在本机 `mail.db`；“全部/正文”可搜索邮件，双击可回到 Outlook 原邮件。默认关闭，不发送、删除、移动或修改邮件。
 
 ## 快速开始
 
@@ -43,7 +47,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\fetch-model.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build-standalone.ps1
 ```
 
-构建完成后，解压 `dist\AIEverything-1.0.2-win-x64.zip` 到普通可写目录，双击 `AIEverything.exe`。文件名搜索立即可用，正文索引默认在后台自动建立；可在设置中暂停或关闭。
+构建完成后，解压 `dist\AIEverything-1.0.3-win-x64.zip` 到普通可写目录，双击 `AIEverything.exe`。文件名搜索立即可用，正文索引默认在后台自动建立；可在设置中暂停或关闭，Classic Outlook 邮件搜索需手动开启。
 
 首次运行可能需要 Windows 授权启动 Everything 本机索引服务。正文索引在后台逐步建立，不阻塞文件名搜索。完整环境、验证和打包说明见 [docs/BUILDING.md](docs/BUILDING.md)。
 
@@ -61,10 +65,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build-standalone.ps1
 
 ## 当前支持范围
 
-| 能力 | 1.0.2 |
+| 能力 | 1.0.3 |
 |---|---|
 | 文件名和路径 | Everything 能发现的本机文件与文件夹 |
 | 正文格式 | `.txt`、`.md`、`.markdown`、`.docx` |
+| 可选邮件 | Classic Outlook 默认收件箱和已发送，最近 100 封 |
 | 正文磁盘 | 已就绪的本地固定 NTFS/ReFS 磁盘 |
 | 正文定位 | TXT 行号；Markdown 标题路径和行号；Word 标题路径、段落或表格坐标 |
 | 结果操作 | 只读预览、打开、资源管理器定位、复制引用 |
@@ -87,7 +92,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build-standalone.ps1
 
 - 目前只支持 Windows x64。
 - TXT/Markdown 仅支持 UTF-8、UTF-8 BOM、带 BOM 的 UTF-16 LE/BE，最大 5 MiB；DOCX 最大 10 MiB；每个文件最多索引 1,000,000 个字符，最长处理 15 秒。
-- PDF、旧版 DOC、RST、XLSX、PPTX、OCR、邮件和聊天内容不在 1.0.2 正文索引范围。
+- PDF、旧版 DOC、RST、XLSX、PPTX、OCR 和聊天内容不在 1.0.3 正文索引范围；邮件不读取附件正文。
 - Word 暂不索引页眉页脚、批注、修订、脚注、文本框或嵌入对象；不承诺页码或自动跳转到 Word 内命中位置。
 - 首次建立全机正文索引时可能产生较高 CPU 和磁盘活动。
 - 本地语义模型需要 x64 AVX2；模型缺失、硬件不支持或推理失败时会安全回退到确定性/行为排序。

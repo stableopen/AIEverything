@@ -2,7 +2,10 @@ using AIEverything.Content.Contracts;
 using AIEverything.ContentClient;
 using AIEverything.Core;
 using AIEverything.Desktop.Ranking;
+using AIEverything.Desktop.Mail;
 using AIEverything.Everything;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace AIEverything.Desktop;
 
@@ -11,15 +14,18 @@ public sealed class StandaloneSearchService
     private readonly IEverythingSearchService _everything;
     private readonly IContentSearchService _content;
     private readonly HybridSearchService _hybrid;
+    private readonly IMailSearch _mail;
 
     public StandaloneSearchService(
         IEverythingSearchService everything,
         IContentSearchService content,
-        HybridSearchService hybrid)
+        HybridSearchService hybrid,
+        IMailSearch? mail = null)
     {
         _everything = everything ?? throw new ArgumentNullException(nameof(everything));
         _content = content ?? throw new ArgumentNullException(nameof(content));
         _hybrid = hybrid ?? throw new ArgumentNullException(nameof(hybrid));
+        _mail = mail ?? EmptyMailSearch.Instance;
     }
 
     public AIEverythingStatus GetEverythingStatus() => _everything.GetStatus();
@@ -153,7 +159,7 @@ public sealed class StandaloneSearchService
             null,
             Limit: request.Limit,
             Field: ContentSearchField.Body), cancellationToken);
-        var items = CollapseFileMatches(response.Items.Select(item => new DesktopSearchItem(
+        var fileItems = CollapseFileMatches(response.Items.Select(item => new DesktopSearchItem(
             item.Name,
             item.FullPath,
             item.Extension,
@@ -168,6 +174,9 @@ public sealed class StandaloneSearchService
             JsonPath: item.JsonPath,
             LocationLabel: item.LocationLabel,
             Imported: item.Imported)));
+        var mailItems = MapMailItems(await SearchMailAsync(
+            request.Query, request.Limit, cancellationToken));
+        var items = MergeRanked(fileItems, mailItems, request.Limit);
         return new DesktopSearchResponse(
             response.Query,
             DesktopSearchMode.Content,
@@ -188,7 +197,7 @@ public sealed class StandaloneSearchService
             null,
             null,
             Limit: request.Limit), cancellationToken);
-        var items = CollapseFileMatches(response.Items.Select((item, index) => new DesktopSearchItem(
+        var fileItems = CollapseFileMatches(response.Items.Select((item, index) => new DesktopSearchItem(
             item.Name,
             item.FullPath,
             item.Extension,
@@ -206,6 +215,9 @@ public sealed class StandaloneSearchService
             RankingTier: GetHybridTier(request.Query, item),
             BaselineIndex: index,
             BaselineScore: item.Score)));
+        var mailItems = MapMailItems(await SearchMailAsync(
+            request.Query, request.Limit, cancellationToken));
+        var items = MergeRanked(fileItems, mailItems, request.Limit);
         return new DesktopSearchResponse(
             response.Query,
             DesktopSearchMode.Hybrid,
@@ -256,6 +268,101 @@ public sealed class StandaloneSearchService
                 };
             })
             .ToArray();
+    }
+
+    private async Task<IReadOnlyList<MailSearchHit>> SearchMailAsync(
+        string query,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _mail.SearchAsync(query, limit, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+            return [];
+        }
+    }
+
+    private static DesktopSearchItem[] MapMailItems(IReadOnlyList<MailSearchHit> hits) =>
+        hits.Select((mail, index) => new DesktopSearchItem(
+            string.IsNullOrWhiteSpace(mail.Subject) ? "(无主题)" : mail.Subject,
+            BuildMailIdentityPath(mail.Identity),
+            "mail",
+            SearchItemKind.File,
+            null,
+            mail.Timestamp,
+            mail.Snippet,
+            "mail",
+            Detail: BuildMailDetail(mail),
+            CopyText: BuildMailReference(mail),
+            LocationLabel: $"邮件 · {mail.Folder}",
+            RankingTier: RankingProtectedTier.Eligible,
+            BaselineIndex: index,
+            BaselineScore: -mail.Score,
+            MailIdentity: mail.Identity)).ToArray();
+
+    private static DesktopSearchItem[] MergeRanked(
+        IReadOnlyList<DesktopSearchItem> files,
+        IReadOnlyList<DesktopSearchItem> mail,
+        int limit)
+    {
+        const double reciprocalRankOffset = 60;
+        return files.Select((item, index) => (Item: item, Rank: index,
+                Score: 1d / (reciprocalRankOffset + index + 1), Source: 0))
+            .Concat(mail.Select((item, index) => (Item: item, Rank: index,
+                Score: 1d / (reciprocalRankOffset + index + 1), Source: 1)))
+            .OrderByDescending(value => value.Score)
+            .ThenBy(value => value.Source)
+            .ThenBy(value => value.Rank)
+            .Take(limit)
+            .Select((value, index) => value.Item with { BaselineIndex = index })
+            .ToArray();
+    }
+
+    private static string BuildMailIdentityPath(MailIdentity identity)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(
+            identity.StoreId + "\n" + identity.EntryId));
+        return "outlook://mail/" + Convert.ToHexString(bytes)[..24].ToLowerInvariant();
+    }
+
+    private static string BuildMailDetail(MailSearchHit mail)
+    {
+        var people = string.IsNullOrWhiteSpace(mail.Recipients)
+            ? mail.Sender
+            : $"{mail.Sender} → {mail.Recipients}";
+        return $"{people} · {mail.Timestamp.ToLocalTime():yyyy-MM-dd HH:mm}";
+    }
+
+    private static string BuildMailReference(MailSearchHit mail)
+    {
+        var builder = new StringBuilder()
+            .Append("邮件：").AppendLine(string.IsNullOrWhiteSpace(mail.Subject) ? "(无主题)" : mail.Subject)
+            .Append("发件人：").AppendLine(mail.Sender)
+            .Append("收件人：").AppendLine(mail.Recipients)
+            .Append("时间：").AppendLine(mail.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm"))
+            .Append("文件夹：").AppendLine(mail.Folder);
+        if (!string.IsNullOrWhiteSpace(mail.AttachmentNames))
+        {
+            builder.Append("附件：").AppendLine(mail.AttachmentNames);
+        }
+        builder.Append("正文片段：").Append(mail.Snippet);
+        return builder.ToString();
+    }
+
+    private sealed class EmptyMailSearch : IMailSearch
+    {
+        public static EmptyMailSearch Instance { get; } = new();
+
+        public Task<IReadOnlyList<MailSearchHit>> SearchAsync(
+            string query, int limit, CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<MailSearchHit>>([]);
     }
 
     private static void Validate(DesktopSearchRequest request)

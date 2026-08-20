@@ -1,6 +1,6 @@
 {
   "name": "aieverything",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Optional read-only Agent connector for the AIEverything Windows app.",
   "author": {
     "name": "Wade"
@@ -20,7 +20,7 @@
   "interface": {
     "displayName": "AIEverything",
     "shortDescription": "Optional connector for the AIEverything desktop app",
-    "longDescription": "Connect an Agent to an independently installed AIEverything 1.0.2 desktop app. Search filenames through Everything and the existing local TXT/MD/MARKDOWN/DOCX body index without changing files or index settings.",
+    "longDescription": "Connect an Agent to an independently installed AIEverything 1.0.3 desktop app. Search filenames through Everything and the existing local TXT/MD/MARKDOWN/DOCX body index without changing files or index settings.",
     "developerName": "Wade",
     "category": "Productivity",
     "capabilities": [

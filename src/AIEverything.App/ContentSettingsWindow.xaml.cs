@@ -3,6 +3,7 @@ using System.Windows.Media;
 using System.Diagnostics;
 using AIEverything.Content.Contracts;
 using AIEverything.Desktop;
+using AIEverything.Desktop.Mail;
 using AIEverything.Desktop.Ranking;
 
 namespace AIEverything.App;
@@ -13,8 +14,10 @@ public partial class ContentSettingsWindow : Window
     private readonly DesktopRankingCoordinator _rankingCoordinator;
     private readonly OnnxCrossEncoderReranker _localModel;
     private readonly IDeepSeekCredentialStore _deepSeekCredentials;
+    private readonly IMailSearchModule _mail;
     private readonly CancellationToken _lifetime;
     private ContentIndexStatus? _status;
+    private MailIndexStatus? _mailStatus;
     private bool _updatingRankingControls;
 
     public ContentSettingsWindow(
@@ -22,6 +25,7 @@ public partial class ContentSettingsWindow : Window
         DesktopRankingCoordinator rankingCoordinator,
         OnnxCrossEncoderReranker localModel,
         IDeepSeekCredentialStore deepSeekCredentials,
+        IMailSearchModule mail,
         RankingOptions rankingOptions,
         CancellationToken lifetime)
     {
@@ -31,6 +35,7 @@ public partial class ContentSettingsWindow : Window
         _localModel = localModel ?? throw new ArgumentNullException(nameof(localModel));
         _deepSeekCredentials = deepSeekCredentials ??
                                throw new ArgumentNullException(nameof(deepSeekCredentials));
+        _mail = mail ?? throw new ArgumentNullException(nameof(mail));
         RankingOptions = rankingOptions ?? throw new ArgumentNullException(nameof(rankingOptions));
         _lifetime = lifetime;
         RenderRankingControls();
@@ -50,13 +55,29 @@ public partial class ContentSettingsWindow : Window
         SetBusy(true);
         try
         {
-            _status = await _search.GetIndexStatusAsync(_lifetime);
-            Render(_status);
             SettingsFeedbackText.Visibility = Visibility.Collapsed;
+            try
+            {
+                _status = await _search.GetIndexStatusAsync(_lifetime);
+                Render(_status);
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                ShowError($"正文服务暂不可用：{exception.Message}");
+            }
+
+            try
+            {
+                _mailStatus = await _mail.GetStatusAsync(_lifetime);
+                RenderMail(_mailStatus);
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                ShowError($"邮件索引暂不可用：{exception.Message}");
+            }
         }
-        catch (Exception exception) when (exception is not OperationCanceledException)
+        catch (OperationCanceledException)
         {
-            ShowError($"正文服务暂不可用：{exception.Message}");
         }
         finally
         {
@@ -140,6 +161,84 @@ public partial class ContentSettingsWindow : Window
         SettingsToggleButton.IsEnabled = !busy && _status is not null;
         SettingsSyncButton.IsEnabled = !busy && _status is { Enabled: true, Paused: false };
         SettingsRetryFailuresButton.IsEnabled = !busy && _status is { FailedDocuments: > 0 };
+        MailEnableSyncButton.IsEnabled = !busy && _mailStatus is { Enabled: false };
+        MailSyncButton.IsEnabled = !busy && _mailStatus is { Enabled: true };
+        MailDisableButton.IsEnabled = !busy && _mailStatus is { Enabled: true };
+        MailClearButton.IsEnabled = !busy && _mailStatus is { IndexedMessages: > 0 };
+    }
+
+    private void RenderMail(MailIndexStatus status)
+    {
+        MailStatusText.Text = status.Enabled
+            ? $"已开启 · 已索引 {status.IndexedMessages:N0} 封"
+            : $"已关闭 · 本地保留 {status.IndexedMessages:N0} 封";
+        if (!string.IsNullOrWhiteSpace(status.LastError))
+        {
+            MailDetailText.Text = $"上次同步失败：{status.LastError}";
+            MailDetailText.Foreground = (Brush)FindResource("DangerBrush");
+        }
+        else if (status.LastSyncAt is { } lastSync)
+        {
+            var skipped = status.LastSkippedMessages > 0
+                ? $" · 跳过 {status.LastSkippedMessages:N0} 封异常邮件"
+                : string.Empty;
+            MailDetailText.Text = $"上次同步 {lastSync.ToLocalTime():yyyy-MM-dd HH:mm}{skipped}";
+            MailDetailText.Foreground = (Brush)FindResource("MutedTextBrush");
+        }
+        else
+        {
+            MailDetailText.Text = "可选读取 Classic Outlook 默认收件箱和已发送中最近 100 封邮件。";
+            MailDetailText.Foreground = (Brush)FindResource("MutedTextBrush");
+        }
+
+        MailEnableSyncButton.IsEnabled = !status.Enabled;
+        MailSyncButton.IsEnabled = status.Enabled;
+        MailDisableButton.IsEnabled = status.Enabled;
+        MailClearButton.IsEnabled = status.IndexedMessages > 0;
+    }
+
+    private async void MailEnableSyncButton_Click(object sender, RoutedEventArgs e) =>
+        await ExecuteMailCommandAsync(MailIndexCommand.EnableAndSynchronize, "正在读取最近 100 封邮件…");
+
+    private async void MailSyncButton_Click(object sender, RoutedEventArgs e) =>
+        await ExecuteMailCommandAsync(MailIndexCommand.Synchronize, "正在同步最近邮件…");
+
+    private async void MailDisableButton_Click(object sender, RoutedEventArgs e) =>
+        await ExecuteMailCommandAsync(MailIndexCommand.Disable, "正在关闭邮件搜索…");
+
+    private async void MailClearButton_Click(object sender, RoutedEventArgs e) =>
+        await ExecuteMailCommandAsync(MailIndexCommand.Clear, "正在清除本地邮件索引…");
+
+    private async Task ExecuteMailCommandAsync(MailIndexCommand command, string busyText)
+    {
+        SetBusy(true);
+        SettingsFeedbackText.Text = busyText;
+        SettingsFeedbackText.Foreground = (Brush)FindResource("MutedTextBrush");
+        SettingsFeedbackText.Visibility = Visibility.Visible;
+        try
+        {
+            var result = await _mail.ExecuteAsync(command, _lifetime);
+            _mailStatus = result.Status;
+            RenderMail(result.Status);
+            SettingsFeedbackText.Text = !string.IsNullOrWhiteSpace(result.Status.LastError)
+                ? "邮件同步未完成，请查看邮件状态。"
+                : command switch
+                {
+                    MailIndexCommand.EnableAndSynchronize or MailIndexCommand.Synchronize =>
+                        $"邮件同步完成，当前可搜索 {result.Status.IndexedMessages:N0} 封。",
+                    MailIndexCommand.Disable => "邮件搜索已关闭。",
+                    MailIndexCommand.Clear => "本地邮件索引已清除。",
+                    _ => "操作已完成。"
+                };
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            ShowError($"邮件操作失败：{exception.Message}");
+        }
+        finally
+        {
+            SetBusy(false);
+        }
     }
 
     private void ShowError(string message)
@@ -322,7 +421,7 @@ public partial class ContentSettingsWindow : Window
     }
 
     private void SettingsReportProblemButton_Click(object sender, RoutedEventArgs e) =>
-        Process.Start(new ProcessStartInfo("https://github.com/stableye/AIEverything/issues/new")
+        Process.Start(new ProcessStartInfo("https://github.com/stableopen/AIEverything/issues/new")
         {
             UseShellExecute = true
         });

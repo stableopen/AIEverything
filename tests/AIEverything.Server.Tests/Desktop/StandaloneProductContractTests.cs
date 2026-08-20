@@ -82,17 +82,25 @@ public sealed class StandaloneProductContractTests
         Assert.Contains("PreviewMenuItem.IsEnabled", mainWindowCode, StringComparison.Ordinal);
         Assert.DoesNotContain("MessageBoxButton.YesNoCancel", Read("src", "AIEverything.App", "MainWindow.xaml.cs"));
         var settings = Read("src", "AIEverything.App", "ContentSettingsWindow.xaml");
-        foreach (var id in new[] { "ContentSettingsWindow", "SettingsStatusText", "SettingsToggleButton", "SettingsSyncButton", "SettingsDatabasePathText", "SettingsCloseButton" })
+        foreach (var id in new[]
+                 {
+                     "ContentSettingsWindow", "SettingsStatusText", "SettingsToggleButton",
+                     "SettingsSyncButton", "SettingsDatabasePathText", "SettingsCloseButton",
+                     "MailStatusText", "MailEnableSyncButton", "MailSyncButton",
+                     "MailDisableButton", "MailClearButton"
+                 })
             Assert.Contains(id, settings, StringComparison.Ordinal);
-        foreach (var forbidden in new[] { "Outlook", "Local Import", "Inbox", "剪贴板", "Teams", "微信", "AddRoot", "RootList", "FileTypeBox", "ModifiedBox", "IndexPanel" })
+        foreach (var forbidden in new[] { "Local Import", "Inbox", "剪贴板", "Teams", "微信", "AddRoot", "RootList", "FileTypeBox", "ModifiedBox", "IndexPanel" })
             Assert.DoesNotContain(forbidden, xaml, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public void V020_runtime_has_no_outlook_local_import_or_manual_root_source_files()
+    public void V103_runtime_has_only_the_read_only_outlook_mail_adapter_and_no_legacy_import()
     {
         foreach (var name in new[] { "OutlookComSelectionSource.cs", "OutlookExplorerAcquirer.cs", "OutlookImportService.cs", "LocalImportService.cs" })
             Assert.False(File.Exists(Path.Combine(Root, "src", "AIEverything.Desktop", name)), name);
+        Assert.True(File.Exists(Path.Combine(
+            Root, "src", "AIEverything.App", "OutlookComMailSource.cs")));
         var daemon = Read("src", "AIEverything.Daemon", "ContentDaemon.cs");
         Assert.DoesNotContain("root.add", daemon, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("root.remove", daemon, StringComparison.OrdinalIgnoreCase);
@@ -118,6 +126,22 @@ public sealed class StandaloneProductContractTests
     }
 
     [Fact]
+    public void V103_outlook_adapter_is_read_only_and_scoped_to_default_inbox_and_sent()
+    {
+        var source = Read("src", "AIEverything.App", "OutlookComMailSource.cs");
+        Assert.Contains("InboxFolder = 6", source, StringComparison.Ordinal);
+        Assert.Contains("SentMailFolder = 5", source, StringComparison.Ordinal);
+        Assert.Contains("MailSearchModule.MaximumMessages", source, StringComparison.Ordinal);
+        Assert.Contains("GetDefaultFolder", source, StringComparison.Ordinal);
+        Assert.Contains("GetItemFromID", source, StringComparison.Ordinal);
+        Assert.Contains("Display(false)", source, StringComparison.Ordinal);
+        foreach (var forbidden in new[] { ".Send(", ".Delete(", ".Move(", ".Save(", "Microsoft.Graph" })
+        {
+            Assert.DoesNotContain(forbidden, source, StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    [Fact]
     public void V101_status_and_feedback_are_short_and_actionable()
     {
         var main = Read("src", "AIEverything.App", "MainWindow.xaml.cs");
@@ -132,7 +156,7 @@ public sealed class StandaloneProductContractTests
             Assert.Contains($"AutomationProperties.AutomationId=\"{id}\"", settings, StringComparison.Ordinal);
         foreach (var label in new[] { "损坏", "加密/不支持", "过大", "超时", "无权限" })
             Assert.Contains(label, settings, StringComparison.Ordinal);
-        Assert.Contains("https://github.com/stableye/AIEverything/issues/new", Read("src", "AIEverything.App", "ContentSettingsWindow.xaml.cs"), StringComparison.Ordinal);
+        Assert.Contains("https://github.com/stableopen/AIEverything/issues/new", Read("src", "AIEverything.App", "ContentSettingsWindow.xaml.cs"), StringComparison.Ordinal);
 
         var daemon = Read("src", "AIEverything.Daemon", "ContentDaemon.cs");
         Assert.Contains("index.failures.retry", daemon, StringComparison.Ordinal);
@@ -276,9 +300,9 @@ public sealed class StandaloneProductContractTests
             "src", "AIEverything.ExtractorWorker", "AIEverything.ExtractorWorker.csproj");
         foreach (var project in new[] { appProject, daemonProject, workerProject })
         {
-            Assert.Contains("<Version>1.0.2</Version>", project, StringComparison.Ordinal);
-            Assert.Contains("<AssemblyVersion>1.0.2.0</AssemblyVersion>", project, StringComparison.Ordinal);
-            Assert.Contains("<FileVersion>1.0.2.0</FileVersion>", project, StringComparison.Ordinal);
+            Assert.Contains("<Version>1.0.3</Version>", project, StringComparison.Ordinal);
+            Assert.Contains("<AssemblyVersion>1.0.3.0</AssemblyVersion>", project, StringComparison.Ordinal);
+            Assert.Contains("<FileVersion>1.0.3.0</FileVersion>", project, StringComparison.Ordinal);
         }
         Assert.Contains("Models\\mmarco-mMiniLMv2-L12-H384-v1", appProject, StringComparison.Ordinal);
         Assert.Contains("ExcludeFromSingleFile=\"true\"", appProject, StringComparison.Ordinal);
@@ -288,8 +312,8 @@ public sealed class StandaloneProductContractTests
             StringComparison.Ordinal);
 
         var build = Read("scripts", "build-standalone.ps1");
-        Assert.Contains("AIEverything-1.0.2-win-x64.zip", build, StringComparison.Ordinal);
-        Assert.Contains("AIEverything-1.0.2-win-x64.zip.sha256", build, StringComparison.Ordinal);
+        Assert.Contains("AIEverything-1.0.3-win-x64.zip", build, StringComparison.Ordinal);
+        Assert.Contains("AIEverything-1.0.3-win-x64.zip.sha256", build, StringComparison.Ordinal);
         Assert.DoesNotContain("AIEverything-V0.21-win-x64.zip", build, StringComparison.Ordinal);
         Assert.Contains("Assert-ModelAssets", build, StringComparison.Ordinal);
         Assert.Contains("Assert-ZipMatchesDirectory", build, StringComparison.Ordinal);
@@ -361,7 +385,7 @@ public sealed class StandaloneProductContractTests
         Assert.Contains("开始使用", releaseNotes, StringComparison.Ordinal);
         Assert.Contains(".docx", releaseNotes, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("https://github.com/stableopen/AIEverything/issues/new", releaseNotes, StringComparison.Ordinal);
-        Assert.Contains("AIEverything-1.0.2-win-x64.zip", readme, StringComparison.Ordinal);
+        Assert.Contains("AIEverything-1.0.3-win-x64.zip", readme, StringComparison.Ordinal);
         Assert.Contains("![AIEverything 工作原理](docs/images/aieverything-workflow.svg)", readme, StringComparison.Ordinal);
         Assert.DoesNotContain("Everything SDK ──", readme, StringComparison.Ordinal);
         Assert.DoesNotContain("点击“启用正文”", readme, StringComparison.Ordinal);
