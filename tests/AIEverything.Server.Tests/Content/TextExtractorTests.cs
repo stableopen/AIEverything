@@ -159,7 +159,7 @@ public sealed class TextExtractorTests : IDisposable
         var unknownException = await Assert.ThrowsAsync<ContentIndexException>(() =>
             _extractor.ExtractAsync(new ExtractionRequest(unknown), CancellationToken.None));
 
-        Assert.Equal(ContentErrorCodes.ExtractionFailed, corruptException.Code);
+        Assert.Equal(ContentErrorCodes.CorruptDocument, corruptException.Code);
         Assert.Equal(ContentErrorCodes.UnsupportedFileType, unknownException.Code);
     }
 

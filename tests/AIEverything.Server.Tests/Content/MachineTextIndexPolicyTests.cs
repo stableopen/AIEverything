@@ -29,14 +29,15 @@ public sealed class MachineTextIndexPolicyTests
     }
 
     [Fact]
-    public void Policy_accepts_exactly_the_three_v020_text_formats()
+    public void Policy_accepts_text_and_docx_with_format_specific_limits()
     {
         var plan = CreatePlan();
         var expected = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase)
         {
             [".txt"] = 5 * 1024 * 1024,
             [".md"] = 5 * 1024 * 1024,
-            [".markdown"] = 5 * 1024 * 1024
+            [".markdown"] = 5 * 1024 * 1024,
+            [".docx"] = 10 * 1024 * 1024
         };
 
         Assert.Equal(expected.Keys.Order(), plan.SupportedExtensions.Order());
@@ -47,7 +48,9 @@ public sealed class MachineTextIndexPolicyTests
             Assert.Equal(pair.Value, decision.MaxBytes);
         }
 
-        foreach (var extension in new[] { ".rst", ".json", ".cs", ".pdf", ".docx", ".xlsx", ".pptx", ".eml", ".msg" })
+        Assert.False(plan.Evaluate(Candidate(@"D:\docs\oversize.docx", 10 * 1024 * 1024 + 1)).Accepted);
+
+        foreach (var extension in new[] { ".rst", ".json", ".cs", ".pdf", ".xlsx", ".pptx", ".eml", ".msg" })
         {
             Assert.False(plan.Evaluate(Candidate($@"D:\docs\sample{extension}", 100)).Accepted);
         }
