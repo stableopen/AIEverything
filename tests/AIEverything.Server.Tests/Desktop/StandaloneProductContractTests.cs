@@ -156,6 +156,7 @@ public sealed class StandaloneProductContractTests
         Assert.Contains("华北区域目标", view, StringComparison.Ordinal);
         Assert.DoesNotContain("Canary", view, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("TestCanary", view, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("C:\\Users\\", view, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("本地语义匹配", view, StringComparison.Ordinal);
         Assert.Contains("找到 3 项 · 智能排序推荐", view, StringComparison.Ordinal);
 

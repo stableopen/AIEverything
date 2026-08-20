@@ -121,7 +121,7 @@
                                         <TextBlock Text="销售计划 · 第 2 段" FontSize="10.5" Foreground="#245F8F" />
                                     </Border>
                                     <TextBlock Grid.Column="1" Margin="8,1,0,0"
-                                               Text="C:\Users\示例\Documents\季度销售计划.docx"
+                                               Text="D:\共享资料\销售部\季度销售计划.docx"
                                                Foreground="{StaticResource MutedTextBrush}" FontSize="11" />
                                 </Grid>
                             </Grid>
@@ -156,7 +156,7 @@
                         <Grid.ColumnDefinitions><ColumnDefinition Width="13*" /><ColumnDefinition Width="7*" /></Grid.ColumnDefinitions>
                         <StackPanel Margin="15,10">
                             <TextBlock Text="销售会议纪要.md" FontSize="13" FontWeight="SemiBold" />
-                            <TextBlock Text="C:\Users\示例\Documents\销售会议纪要.md"
+                            <TextBlock Text="D:\共享资料\销售部\销售会议纪要.md"
                                        Margin="0,5,0,0" Foreground="{StaticResource MutedTextBrush}" FontSize="11" />
                         </StackPanel>
                         <Border Grid.Column="1" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1,0,0,0" Padding="14,10">
