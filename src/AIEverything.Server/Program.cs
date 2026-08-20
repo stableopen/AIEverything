@@ -45,7 +45,7 @@ static async Task RunMcpServerAsync(string[] hostArgs)
             options.ServerInfo = new Implementation
             {
                 Name = "aieverything",
-                Version = "1.0.0",
+                Version = "1.0.1",
                 Title = "AIEverything"
             };
             options.ServerInstructions =

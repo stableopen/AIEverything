@@ -30,6 +30,9 @@ public static class ContentErrorCodes
     public const string OcrRequired = "OCR_REQUIRED";
     public const string ExtractionTimeout = "EXTRACTION_TIMEOUT";
     public const string ExtractionFailed = "EXTRACTION_FAILED";
+    public const string CorruptDocument = "CORRUPT_DOCUMENT";
+    public const string UnsupportedOrEncryptedDocument = "UNSUPPORTED_OR_ENCRYPTED_DOCUMENT";
+    public const string AccessDenied = "ACCESS_DENIED";
     public const string IndexBusy = "CONTENT_INDEX_BUSY";
     public const string IndexCorrupt = "CONTENT_INDEX_CORRUPT";
     public const string QueryTooBroad = "QUERY_TOO_BROAD";

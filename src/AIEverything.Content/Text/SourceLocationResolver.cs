@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using AIEverything.Content.Extraction;
 
 namespace AIEverything.Content.Text;
 
@@ -17,8 +18,21 @@ public static class SourceLocationResolver
         string content,
         string extension,
         IReadOnlyList<string> queryTerms,
+        int maxHits = 3) => Resolve(content, extension, queryTerms, null, maxHits);
+
+    public static IReadOnlyList<SourceLocationHit> Resolve(
+        string content,
+        string extension,
+        IReadOnlyList<string> queryTerms,
+        IReadOnlyList<ExtractedTextBlock>? blocks,
         int maxHits = 3)
     {
+        if (string.Equals(extension, "docx", StringComparison.OrdinalIgnoreCase) &&
+            blocks is { Count: > 0 })
+        {
+            return ResolveBlocks(blocks, queryTerms, maxHits);
+        }
+
         if (string.Equals(extension, "json", StringComparison.OrdinalIgnoreCase))
         {
             return ResolveJson(content, queryTerms, maxHits);
@@ -30,6 +44,73 @@ public static class SourceLocationResolver
             ? BuildHeadingPaths(lines)
             : null;
         return FindTextHits(lines, queryTerms, maxHits, headings);
+    }
+
+    private static IReadOnlyList<SourceLocationHit> ResolveBlocks(
+        IReadOnlyList<ExtractedTextBlock> blocks,
+        IReadOnlyList<string> queryTerms,
+        int maxHits)
+    {
+        if (queryTerms.Count == 0 || maxHits < 1)
+        {
+            return [];
+        }
+
+        if (queryTerms.Count > 1)
+        {
+            (int Start, int End)? best = null;
+            for (var start = 0; start < blocks.Count; start++)
+            {
+                var found = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                for (var end = start; end < blocks.Count; end++)
+                {
+                    foreach (var term in queryTerms)
+                    {
+                        if (blocks[end].Text.Contains(term, StringComparison.OrdinalIgnoreCase))
+                        {
+                            found.Add(term);
+                        }
+                    }
+
+                    if (found.Count != queryTerms.Count)
+                    {
+                        continue;
+                    }
+
+                    if (best is null || end - start < best.Value.End - best.Value.Start)
+                    {
+                        best = (start, end);
+                    }
+                    break;
+                }
+            }
+
+            if (best is { } window)
+            {
+                var representative = blocks[window.End];
+                return [new SourceLocationHit(
+                    representative.Ordinal,
+                    representative.Ordinal,
+                    string.Join(Environment.NewLine, blocks
+                        .Skip(window.Start)
+                        .Take(window.End - window.Start + 1)
+                        .Select(block => block.Text)),
+                    representative.HeadingPath,
+                    LocationLabel: representative.LocationLabel)];
+            }
+        }
+
+        return blocks
+            .Where(block => queryTerms.Any(term =>
+                block.Text.Contains(term, StringComparison.OrdinalIgnoreCase)))
+            .Take(maxHits)
+            .Select(block => new SourceLocationHit(
+                block.Ordinal,
+                block.Ordinal,
+                block.Text,
+                block.HeadingPath,
+                LocationLabel: block.LocationLabel))
+            .ToArray();
     }
 
     private static IReadOnlyList<SourceLocationHit> ResolveJson(

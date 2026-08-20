@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using System.Text.Json;
 using AIEverything.Content.Contracts;
+using AIEverything.Content.Errors;
 using AIEverything.Content.Extraction;
 using AIEverything.Content.Text;
 using Microsoft.Data.Sqlite;
@@ -238,7 +240,8 @@ public sealed class ContentIndexStore : IAsyncDisposable
         InGateAsync(async connection =>
         {
             await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
-            var id = await UpsertDocumentAsync(connection, (SqliteTransaction)transaction, lease, extraction.Text, cancellationToken);
+            var locationMap = SerializeLocationMap(extraction);
+            var id = await UpsertDocumentAsync(connection, (SqliteTransaction)transaction, lease, extraction.Text, locationMap, cancellationToken);
             await using var command = connection.CreateCommand();
             command.Transaction = (SqliteTransaction)transaction;
             command.CommandText = """
@@ -318,7 +321,7 @@ public sealed class ContentIndexStore : IAsyncDisposable
             var total = Convert.ToInt32(await count.ExecuteScalarAsync(cancellationToken));
             await using var command = connection.CreateCommand();
             command.CommandText = $"""
-                SELECT d.name,d.full_path,d.extension,d.size,d.modified_at,d.content,
+                SELECT d.name,d.full_path,d.extension,d.size,d.modified_at,d.content,d.location_map,
                        bm25(content_fts,8.0,1.0) AS rank
                 FROM content_fts JOIN documents d ON d.id=content_fts.rowid
                 WHERE {where} ORDER BY rank,d.name COLLATE NOCASE LIMIT $limit OFFSET $offset;
@@ -341,15 +344,18 @@ public sealed class ContentIndexStore : IAsyncDisposable
                     }
                     var content = reader.GetString(5);
                     var extension = reader.GetString(2);
+                    var blocks = reader.IsDBNull(6)
+                        ? null
+                        : DeserializeLocationMap(content, reader.GetString(6));
                     var locations = request.Field == ContentSearchField.Title
                         ? new[] { new SourceLocationHit(1, 1, string.Empty) }
-                        : SourceLocationResolver.Resolve(content, extension, terms);
+                        : SourceLocationResolver.Resolve(content, extension, terms, blocks);
                     if (locations.Count == 0) locations = [new SourceLocationHit(1, 1, BuildSnippet(content, terms))];
                     foreach (var location in locations)
                     {
                         items.Add(new ContentSearchItem(reader.GetString(0), fullPath, extension,
                             reader.GetInt64(3), DateTimeOffset.FromUnixTimeMilliseconds(reader.GetInt64(4)),
-                            location.Snippet, -reader.GetDouble(6),
+                            location.Snippet, -reader.GetDouble(7),
                             request.Field != ContentSearchField.Body && MatchesAny(reader.GetString(0), terms),
                             request.Field != ContentSearchField.Title,
                             location.StartLine, location.EndLine, location.HeadingPath, location.JsonPath,
@@ -390,6 +396,13 @@ public sealed class ContentIndexStore : IAsyncDisposable
                 LastIndexedAt: await LastIndexedAsync(connection, cancellationToken), DatabasePath: _databasePath,
                 Message: error ?? syncState, Enabled: enabled, DisclosureAccepted: disclosed,
                 SyncState: syncState, DatabaseBytes: GetDatabaseBytes(),
+                CorruptFailures: await CountFailuresAsync(connection, ContentErrorCodes.CorruptDocument, cancellationToken),
+                UnsupportedOrEncryptedFailures: await CountFailuresAsync(connection, ContentErrorCodes.UnsupportedOrEncryptedDocument, cancellationToken) +
+                    await CountFailuresAsync(connection, ContentErrorCodes.UnsupportedFileType, cancellationToken) +
+                    await CountFailuresAsync(connection, ContentErrorCodes.UnsupportedEncoding, cancellationToken),
+                TooLargeFailures: await CountFailuresAsync(connection, ContentErrorCodes.FileTooLarge, cancellationToken),
+                TimeoutFailures: await CountFailuresAsync(connection, ContentErrorCodes.ExtractionTimeout, cancellationToken),
+                AccessDeniedFailures: await CountFailuresAsync(connection, ContentErrorCodes.AccessDenied, cancellationToken),
                 LastSynchronizedAt: long.TryParse(
                     lastSynchronizedAt,
                     System.Globalization.NumberStyles.Integer,
@@ -397,6 +410,14 @@ public sealed class ContentIndexStore : IAsyncDisposable
                     out var timestamp)
                     ? DateTimeOffset.FromUnixTimeMilliseconds(timestamp)
                     : null);
+        }, cancellationToken);
+
+    public Task ClearFailuresAsync(CancellationToken cancellationToken) =>
+        InGateAsync(async connection =>
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = "DELETE FROM index_failures;";
+            await command.ExecuteNonQueryAsync(cancellationToken);
         }, cancellationToken);
 
     public Task<IReadOnlyList<ContentIndexFailure>> ListFailuresAsync(CancellationToken cancellationToken) =>
@@ -483,16 +504,16 @@ public sealed class ContentIndexStore : IAsyncDisposable
     }
 
     private static async Task<long> UpsertDocumentAsync(SqliteConnection connection, SqliteTransaction transaction,
-        QueueLease lease, string content, CancellationToken token)
+        QueueLease lease, string content, string? locationMap, CancellationToken token)
     {
         await using var command = connection.CreateCommand();
         command.Transaction = transaction;
         command.CommandText = """
-            INSERT INTO documents(full_path,name,extension,size,modified_at,fingerprint,content,indexed_at)
-            VALUES($path,$name,$extension,$size,$modified,$fingerprint,$content,$indexed)
+            INSERT INTO documents(full_path,name,extension,size,modified_at,fingerprint,content,location_map,indexed_at)
+            VALUES($path,$name,$extension,$size,$modified,$fingerprint,$content,$locationMap,$indexed)
             ON CONFLICT(full_path) DO UPDATE SET name=excluded.name,extension=excluded.extension,
                 size=excluded.size,modified_at=excluded.modified_at,fingerprint=excluded.fingerprint,
-                content=excluded.content,indexed_at=excluded.indexed_at
+                content=excluded.content,location_map=excluded.location_map,indexed_at=excluded.indexed_at
             RETURNING id;
             """;
         command.Parameters.AddWithValue("$path", lease.FullPath);
@@ -502,9 +523,69 @@ public sealed class ContentIndexStore : IAsyncDisposable
         command.Parameters.AddWithValue("$modified", lease.ModifiedAt.ToUnixTimeMilliseconds());
         command.Parameters.AddWithValue("$fingerprint", lease.Fingerprint);
         command.Parameters.AddWithValue("$content", content);
+        command.Parameters.AddWithValue("$locationMap", (object?)locationMap ?? DBNull.Value);
         command.Parameters.AddWithValue("$indexed", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
         return Convert.ToInt64(await command.ExecuteScalarAsync(token));
     }
+
+    private static string? SerializeLocationMap(ExtractionResult extraction)
+    {
+        if (extraction.Blocks is not { Count: > 0 })
+        {
+            return null;
+        }
+
+        var offset = 0;
+        var entries = new List<LocationMapEntry>(extraction.Blocks.Count);
+        foreach (var block in extraction.Blocks)
+        {
+            var start = extraction.Text.IndexOf(block.Text, offset, StringComparison.Ordinal);
+            if (start < 0)
+            {
+                continue;
+            }
+
+            entries.Add(new LocationMapEntry(
+                block.Ordinal, start, block.Text.Length, block.LocationLabel, block.HeadingPath));
+            offset = start + block.Text.Length;
+        }
+
+        return entries.Count == 0 ? null : JsonSerializer.Serialize(entries);
+    }
+
+    private static IReadOnlyList<ExtractedTextBlock>? DeserializeLocationMap(
+        string content,
+        string json)
+    {
+        try
+        {
+            var entries = JsonSerializer.Deserialize<LocationMapEntry[]>(json);
+            if (entries is null || entries.Any(entry =>
+                    entry.Start < 0 || entry.Length < 0 ||
+                    entry.Start > content.Length - entry.Length ||
+                    string.IsNullOrWhiteSpace(entry.LocationLabel)))
+            {
+                return null;
+            }
+
+            return entries.Select(entry => new ExtractedTextBlock(
+                entry.Ordinal,
+                content.Substring(entry.Start, entry.Length),
+                entry.LocationLabel,
+                entry.HeadingPath)).ToArray();
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    private sealed record LocationMapEntry(
+        int Ordinal,
+        int Start,
+        int Length,
+        string LocationLabel,
+        string? HeadingPath);
 
     private static void AddCandidateParameters(SqliteCommand command, FileCandidate value)
     {
@@ -540,6 +621,17 @@ public sealed class ContentIndexStore : IAsyncDisposable
     private static async Task<int> ScalarIntAsync(SqliteConnection connection, SqliteTransaction transaction,
         string sql, string scan, CancellationToken token)
     { await using var command = connection.CreateCommand(); command.Transaction = transaction; command.CommandText = sql; command.Parameters.AddWithValue("$scan", scan); return Convert.ToInt32(await command.ExecuteScalarAsync(token)); }
+
+    private static async Task<int> CountFailuresAsync(
+        SqliteConnection connection,
+        string code,
+        CancellationToken token)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT COUNT(*) FROM index_failures WHERE error_code=$code;";
+        command.Parameters.AddWithValue("$code", code);
+        return Convert.ToInt32(await command.ExecuteScalarAsync(token));
+    }
 
     private static async Task<DateTimeOffset?> LastIndexedAsync(SqliteConnection connection, CancellationToken token)
     { await using var command = connection.CreateCommand(); command.CommandText = "SELECT MAX(indexed_at) FROM documents;"; var value = await command.ExecuteScalarAsync(token); return value is null or DBNull ? null : DateTimeOffset.FromUnixTimeMilliseconds(Convert.ToInt64(value)); }

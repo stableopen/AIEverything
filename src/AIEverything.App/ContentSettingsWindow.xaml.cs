@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Media;
+using System.Diagnostics;
 using AIEverything.Content.Contracts;
 using AIEverything.Desktop;
 using AIEverything.Desktop.Ranking;
@@ -125,6 +126,10 @@ public partial class ContentSettingsWindow : Window
         SettingsFailureText.Foreground = status.FailedDocuments > 0
             ? (Brush)FindResource("DangerBrush")
             : (Brush)FindResource("TextBrush");
+        SettingsFailureGroupsText.Text =
+            $"损坏 {status.CorruptFailures:N0} · 加密/不支持 {status.UnsupportedOrEncryptedFailures:N0} · " +
+            $"过大 {status.TooLargeFailures:N0} · 超时 {status.TimeoutFailures:N0} · 无权限 {status.AccessDeniedFailures:N0}";
+        SettingsRetryFailuresButton.IsEnabled = status.FailedDocuments > 0;
         SettingsDatabasePathText.Text = status.DatabasePath ?? "尚未创建";
         SettingsDatabaseSizeText.Text = FormatBytes(status.DatabaseBytes);
         SettingsSyncButton.IsEnabled = status.Enabled && !status.Paused;
@@ -134,6 +139,7 @@ public partial class ContentSettingsWindow : Window
     {
         SettingsToggleButton.IsEnabled = !busy && _status is not null;
         SettingsSyncButton.IsEnabled = !busy && _status is { Enabled: true, Paused: false };
+        SettingsRetryFailuresButton.IsEnabled = !busy && _status is { FailedDocuments: > 0 };
     }
 
     private void ShowError(string message)
@@ -304,6 +310,33 @@ public partial class ContentSettingsWindow : Window
     };
 
     private void SettingsCloseButton_Click(object sender, RoutedEventArgs e) => Close();
+
+    private async void SettingsRetryFailuresButton_Click(object sender, RoutedEventArgs e)
+    {
+        SetBusy(true);
+        try
+        {
+            _status = await _search.RetryFailuresAsync(_lifetime);
+            Render(_status);
+            SettingsFeedbackText.Text = "已重新提交失败文件。";
+            SettingsFeedbackText.Foreground = (Brush)FindResource("MutedTextBrush");
+            SettingsFeedbackText.Visibility = Visibility.Visible;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            ShowError($"重试失败：{exception.Message}");
+        }
+        finally
+        {
+            SetBusy(false);
+        }
+    }
+
+    private void SettingsReportProblemButton_Click(object sender, RoutedEventArgs e) =>
+        Process.Start(new ProcessStartInfo("https://github.com/stableye/AIEverything/issues/new")
+        {
+            UseShellExecute = true
+        });
 
     private static string FormatBytes(long bytes) => bytes < 1024
         ? $"{bytes} B"

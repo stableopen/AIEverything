@@ -183,7 +183,7 @@
                     <TextBlock Grid.Column="1" Margin="12,0,0,0"
                                Foreground="{StaticResource MutedTextBrush}"
                                VerticalAlignment="Center"
-                               Text="文件名搜索全机；TXT、Markdown 可搜正文" />
+                               Text="文件名搜索全机；Word、TXT、Markdown 可搜正文" />
                 </Grid>
             </StackPanel>
         </Border>
@@ -229,7 +229,7 @@
                     <TextBlock TextWrapping="Wrap" VerticalAlignment="Center"
                                Foreground="#244663" FontSize="11.5">
                         <Run FontWeight="SemiBold" Text="文件名搜索已可使用。" />
-                        <Run Text=" 启用后将发现本机固定磁盘中的 TXT、MD、MARKDOWN；正文索引仅保存在本机未单独加密的 SQLite，不修改源文件。可选 DeepSeek 的片段外发需在设置中另行披露并主动开启。" />
+                        <Run Text=" 启用后将发现本机固定磁盘中的 DOCX、TXT、MD、MARKDOWN；正文索引仅保存在本机未单独加密的 SQLite，不修改源文件。可选 DeepSeek 的片段外发需在设置中另行披露并主动开启。" />
                     </TextBlock>
                 </DockPanel>
             </Border>
@@ -389,7 +389,7 @@
                                FontSize="18" FontWeight="SemiBold"
                                HorizontalAlignment="Center" />
                     <TextBlock x:Name="EmptyHint"
-                               Text="查找文件名和路径，或定位 TXT、Markdown 中的具体段落"
+                               Text="查找文件名和路径，或定位 Word、TXT、Markdown 中的具体段落"
                                Foreground="{StaticResource MutedTextBrush}"
                                Margin="0,7,0,0" TextAlignment="Center"
                                TextWrapping="Wrap" />

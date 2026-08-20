@@ -68,9 +68,9 @@ Pins the bundled native SQLite build to a release newer than the vulnerable 2.1.
 - License: MIT
 - License text: https://licenses.nuget.org/MIT
 
-Legacy parser code can extract DOCX, XLSX, and PPTX text. AIEverything 1.0.0's
-machine indexing policy does not enqueue these formats and does not claim them
-as supported body-search formats.
+Used to extract structured DOCX headings, paragraphs, and table cells. Legacy
+XLSX/PPTX parser code remains present but AIEverything 1.0.1 does not enqueue or
+claim those formats for body search.
 
 ## PdfPig
 
@@ -79,7 +79,7 @@ as supported body-search formats.
 - License: Apache License 2.0
 - License text: https://licenses.nuget.org/Apache-2.0
 
-Legacy parser code can extract text-based PDFs. AIEverything 1.0.0's machine
+Legacy parser code can extract text-based PDFs. AIEverything 1.0.1's machine
 indexing policy does not enqueue PDF and does not claim PDF body search.
 
 ## Microsoft ML ONNX Runtime

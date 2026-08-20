@@ -4,9 +4,9 @@
 
 > 以 Everything 作为快速的全盘文件名搜索引擎，再增加正文索引、结果净化和智能排序。
 
-适合需要在 Windows 全机快速查找文件名，并按内容定位 TXT/Markdown 原文的知识工作者和重度本机文件用户。
+适合需要在 Windows 全机快速查找文件名，并按内容定位 Word、TXT、Markdown 原文的办公用户。
 
-![AIEverything 1.0.0 主界面](docs/images/aieverything-1.0.0.png)
+![AIEverything 1.0.1 Word 正文搜索](docs/images/aieverything-1.0.1-docx.png)
 
 AIEverything 是独立开源项目，不是 voidtools 官方产品，也不隶属于 voidtools。文件名能力基于随包分发的 Everything 1.4 引擎和 SDK；相关版权与许可证归原作者所有。
 
@@ -18,7 +18,7 @@ AIEverything 是独立开源项目，不是 voidtools 官方产品，也不隶�
 
 ### 2. 不只知道文件名，还能找到正文位置
 
-可选的本地正文索引覆盖固定磁盘中的 `.txt`、`.md`、`.markdown`。TXT 命中返回行号，Markdown 命中返回标题路径和行号；同一文件的多处命中合并成一条结果，可直接预览、打开、定位或复制引用。
+可选的本地正文索引覆盖固定磁盘中的 `.txt`、`.md`、`.markdown`、`.docx`。TXT 命中返回行号，Markdown 命中返回标题路径和行号；Word 命中显示标题路径、段落或表格坐标。同一文件的多处命中合并成一条结果，可直接预览、打开、定位或复制引用。
 
 ### 3. 结果更少干扰，更接近用户真正想找的内容
 
@@ -26,7 +26,15 @@ AIEverything 是独立开源项目，不是 voidtools 官方产品，也不隶�
 
 ## 快速开始
 
-当前公开仓库提供源码构建入口：
+直接下载 [AIEverything-1.0.1-win-x64.zip](https://github.com/stableye/AIEverything/releases/download/v1.0.1/AIEverything-1.0.1-win-x64.zip)，解压到普通可写目录后双击 `AIEverything.exe`。无需安装 .NET SDK。
+
+三步开始使用：
+
+1. 下载并解压便携 ZIP。
+2. 双击 `AIEverything.exe`，文件名搜索立即可用。
+3. 点击“启用正文”，后台逐步加入 Word、TXT 和 Markdown 正文；搜索期间界面仍可使用。
+
+校验文件：[SHA-256](https://github.com/stableye/AIEverything/releases/download/v1.0.1/AIEverything-1.0.1-win-x64.zip.sha256)。遇到问题请[直接反馈](https://github.com/stableye/AIEverything/issues/new)。源码构建：
 
 ```powershell
 git clone https://github.com/stableye/AIEverything.git
@@ -35,7 +43,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\fetch-model.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build-standalone.ps1
 ```
 
-构建完成后，解压 `dist\AIEverything-1.0.0-win-x64.zip` 到普通可写目录，双击 `AIEverything.exe`。文件名搜索立即可用；如需正文搜索，在首次提示或设置中启用正文索引。
+构建完成后，解压 `dist\AIEverything-1.0.1-win-x64.zip` 到普通可写目录，双击 `AIEverything.exe`。文件名搜索立即可用；如需正文搜索，在首次提示或设置中启用正文索引。
 
 首次运行可能需要 Windows 授权启动 Everything 本机索引服务。正文索引在后台逐步建立，不阻塞文件名搜索。完整环境、验证和打包说明见 [docs/BUILDING.md](docs/BUILDING.md)。
 
@@ -61,12 +69,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build-standalone.ps1
 
 ## 当前支持范围
 
-| 能力 | 1.0.0 |
+| 能力 | 1.0.1 |
 |---|---|
 | 文件名和路径 | Everything 能发现的本机文件与文件夹 |
-| 正文格式 | `.txt`、`.md`、`.markdown` |
+| 正文格式 | `.txt`、`.md`、`.markdown`、`.docx` |
 | 正文磁盘 | 已就绪的本地固定 NTFS/ReFS 磁盘 |
-| 正文定位 | TXT 行号；Markdown 标题路径和行号 |
+| 正文定位 | TXT 行号；Markdown 标题路径和行号；Word 标题路径、段落或表格坐标 |
 | 结果操作 | 只读预览、打开、资源管理器定位、复制引用 |
 | 本地排序 | 行为偏好 + 内置 MiniLM Top10 重排 |
 | 云端排序 | DeepSeek，可选且默认关闭 |
@@ -86,15 +94,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build-standalone.ps1
 ## 已知限制
 
 - 目前只支持 Windows x64。
-- 正文仅支持 UTF-8、UTF-8 BOM、带 BOM 的 UTF-16 LE/BE；单文件最大 5 MiB，最多索引 1,000,000 个字符。
-- PDF、DOCX、RST、XLSX、PPTX、OCR、旧版 Office、邮件和聊天内容尚未进入 1.0.0 正文索引范围。
+- TXT/Markdown 仅支持 UTF-8、UTF-8 BOM、带 BOM 的 UTF-16 LE/BE，最大 5 MiB；DOCX 最大 10 MiB；每个文件最多索引 1,000,000 个字符，最长处理 15 秒。
+- PDF、旧版 DOC、RST、XLSX、PPTX、OCR、邮件和聊天内容不在 1.0.1 正文索引范围。
+- Word 暂不索引页眉页脚、批注、修订、脚注、文本框或嵌入对象；不承诺页码或自动跳转到 Word 内命中位置。
 - 首次建立全机正文索引时可能产生较高 CPU 和磁盘活动。
 - 本地语义模型需要 x64 AVX2；模型缺失、硬件不支持或推理失败时会安全回退到确定性/行为排序。
 - 文件名结果补充和重排最多检查前 500 个 Everything 候选，不等价于展示所有匹配项。
 
 ## 可选 Agent 接口
 
-仓库保留只读 MCP/Skill 适配器，供 Agent 搜索文件名以及已经由桌面端建立的 TXT/Markdown 正文索引。它不是桌面应用的运行前提，也不随默认桌面包安装。
+仓库保留只读 MCP/Skill 适配器，供 Agent 搜索文件名以及已经由桌面端建立的 Word/TXT/Markdown 正文索引。它不是桌面应用的运行前提，也不随默认桌面包安装。
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build-agent-connector.ps1

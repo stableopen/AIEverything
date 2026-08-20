@@ -31,7 +31,8 @@ public sealed class MachineTextIndexPlan
         {
             [".txt"] = 5 * 1024 * 1024,
             [".md"] = 5 * 1024 * 1024,
-            [".markdown"] = 5 * 1024 * 1024
+            [".markdown"] = 5 * 1024 * 1024,
+            [".docx"] = 10 * 1024 * 1024
         };
 
     private static readonly HashSet<string> RepositoryMarkers =

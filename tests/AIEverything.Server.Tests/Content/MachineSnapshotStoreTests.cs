@@ -3,6 +3,7 @@ using AIEverything.Content.Contracts;
 using AIEverything.Content.Extraction;
 using AIEverything.Content.MachineIndex;
 using AIEverything.Content.Storage;
+using AIEverything.Content.Errors;
 
 namespace AIEverything.Server.Tests.Content;
 
@@ -76,6 +77,55 @@ public sealed class MachineSnapshotStoreTests : IAsyncLifetime
         Assert.Equal(0, (await _store.GetStatusAsync(CancellationToken.None)).IndexedDocuments);
     }
 
+    [Fact]
+    public async Task Search_reopens_persisted_docx_location_map()
+    {
+        var path = Write("plan.docx", "placeholder");
+        var candidate = FileCandidate.FromFile(path, priority: 0) with
+        {
+            Extension = "docx",
+            MaxBytes = 10 * 1024 * 1024
+        };
+        await _store.EnqueueAsync(candidate, CancellationToken.None);
+        var lease = Assert.IsType<QueueLease>(await _store.LeaseNextAsync(CancellationToken.None));
+        var blocks = new[]
+        {
+            new ExtractedTextBlock(1, "Sales Plan", "Sales Plan · heading 1", "Sales Plan"),
+            new ExtractedTextBlock(2, "regional target is rising", "Sales Plan · 第 4 段", "Sales Plan")
+        };
+        await _store.CompleteAsync(
+            lease,
+            new ExtractionResult("Sales Plan\nregional target is rising", false, 41, blocks),
+            CancellationToken.None);
+
+        var response = await _store.SearchAsync(
+            new ContentSearchRequest("regional target"), CancellationToken.None);
+
+        var item = Assert.Single(response.Items);
+        Assert.Equal("Sales Plan · 第 4 段", item.LocationLabel);
+        Assert.Equal("Sales Plan", item.HeadingPath);
+    }
+
+    [Fact]
+    public async Task Permanent_corrupt_docx_is_recorded_once_and_does_not_block_next_file()
+    {
+        var corrupt = Write("broken.docx", "broken");
+        var valid = Write("valid.txt", "valid searchable");
+        await _store.EnqueueAsync(FileCandidate.FromFile(corrupt, priority: 0) with { Extension = "docx" }, CancellationToken.None);
+        await _store.EnqueueAsync(FileCandidate.FromFile(valid, priority: 1), CancellationToken.None);
+        var extractor = new CorruptDocxExtractor();
+        var indexer = new AIEverything.Content.Indexing.ContentIndexer(_store, extractor);
+
+        Assert.True(await indexer.ProcessOneAsync(CancellationToken.None));
+        Assert.True(await indexer.ProcessOneAsync(CancellationToken.None));
+        await _store.EnqueueAsync(FileCandidate.FromFile(corrupt, priority: 0) with { Extension = "docx" }, CancellationToken.None);
+
+        Assert.False(await indexer.ProcessOneAsync(CancellationToken.None));
+        Assert.Equal(1, extractor.CorruptAttempts);
+        Assert.Single((await _store.SearchAsync(new ContentSearchRequest("valid"), CancellationToken.None)).Items);
+        Assert.Equal(1, (await _store.GetStatusAsync(CancellationToken.None)).FailedDocuments);
+    }
+
     private async Task CommitAndProcessAsync(params string[] paths)
     {
         var scan = await _store.BeginCandidateScanAsync(CancellationToken.None);
@@ -105,5 +155,24 @@ public sealed class MachineSnapshotStoreTests : IAsyncLifetime
     {
         await _store.DisposeAsync();
         Directory.Delete(_root, recursive: true);
+    }
+
+    private sealed class CorruptDocxExtractor : ITextExtractor
+    {
+        public int CorruptAttempts { get; private set; }
+
+        public Task<ExtractionResult> ExtractAsync(ExtractionRequest request, CancellationToken cancellationToken)
+        {
+            if (request.Path.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
+            {
+                CorruptAttempts++;
+                throw new ContentIndexException(
+                    ContentErrorCodes.CorruptDocument,
+                    "The Word document is corrupt.",
+                    "Repair the document and retry.");
+            }
+
+            return Task.FromResult(new ExtractionResult("valid searchable", false, 16));
+        }
     }
 }

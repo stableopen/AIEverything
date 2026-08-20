@@ -84,6 +84,30 @@ public sealed class CompositeTextExtractor : ITextExtractor
         {
             throw;
         }
+        catch (UnauthorizedAccessException exception)
+        {
+            throw new ContentIndexException(
+                ContentErrorCodes.AccessDenied,
+                $"Access was denied while reading: {request.Path}",
+                "Grant read access or leave the file excluded.",
+                exception);
+        }
+        catch (DocumentFormat.OpenXml.Packaging.OpenXmlPackageException exception)
+        {
+            throw new ContentIndexException(
+                ContentErrorCodes.CorruptDocument,
+                $"The document package is corrupt: {request.Path}",
+                "Repair the document and retry.",
+                exception);
+        }
+        catch (FileFormatException exception)
+        {
+            throw new ContentIndexException(
+                ContentErrorCodes.CorruptDocument,
+                $"The document package is corrupt or encrypted: {request.Path}",
+                "Repair or decrypt the document and retry.",
+                exception);
+        }
         catch (Exception exception)
         {
             throw new ContentIndexException(

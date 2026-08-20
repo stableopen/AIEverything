@@ -78,6 +78,11 @@ public sealed class ContentIndexer
         string message,
         CancellationToken cancellationToken)
     {
+        if (IsPermanent(code))
+        {
+            return _store.FailAsync(lease, code, message, retryAt: null, cancellationToken);
+        }
+
         var delayIndex = Math.Min(lease.Attempts, RetryDelays.Length - 1);
         return _store.FailAsync(
             lease,
@@ -86,4 +91,13 @@ public sealed class ContentIndexer
             DateTimeOffset.UtcNow.Add(RetryDelays[delayIndex]),
             cancellationToken);
     }
+
+    private static bool IsPermanent(string code) => code is
+        ContentErrorCodes.CorruptDocument or
+        ContentErrorCodes.UnsupportedOrEncryptedDocument or
+        ContentErrorCodes.UnsupportedFileType or
+        ContentErrorCodes.UnsupportedEncoding or
+        ContentErrorCodes.FileTooLarge or
+        ContentErrorCodes.ExtractionTimeout or
+        ContentErrorCodes.AccessDenied;
 }

@@ -44,7 +44,7 @@ public sealed class ExtractorWorkerIntegrationTests : IDisposable
         using var json = JsonDocument.Parse(result.StandardOutput);
         Assert.False(json.RootElement.GetProperty("success").GetBoolean());
         Assert.Equal(
-            ContentErrorCodes.ExtractionFailed,
+            ContentErrorCodes.CorruptDocument,
             json.RootElement.GetProperty("error").GetProperty("code").GetString());
     }
 

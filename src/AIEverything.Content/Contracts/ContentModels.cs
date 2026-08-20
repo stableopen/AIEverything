@@ -66,7 +66,12 @@ public sealed record ContentIndexStatus(
     string SyncState = "unknown",
     long DatabaseBytes = 0,
     int FilteredCandidates = 0,
-    DateTimeOffset? LastSynchronizedAt = null);
+    DateTimeOffset? LastSynchronizedAt = null,
+    int CorruptFailures = 0,
+    int UnsupportedOrEncryptedFailures = 0,
+    int TooLargeFailures = 0,
+    int TimeoutFailures = 0,
+    int AccessDeniedFailures = 0);
 
 public sealed record ContentIndexFailure(
     string RootPath,
@@ -78,8 +83,8 @@ public sealed record ContentIndexFailure(
 
 public static class ContentServiceCompatibility
 {
-    public const string ProtocolVersion = "5";
-    public const string TextExtractionRevision = "machine-source-location-v1";
+    public const string ProtocolVersion = "6";
+    public const string TextExtractionRevision = "machine-docx-blocks-v1";
 
     public static bool IsCompatible(ContentIndexStatus status) =>
         string.Equals(

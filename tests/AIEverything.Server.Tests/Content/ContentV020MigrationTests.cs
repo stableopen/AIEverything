@@ -25,7 +25,7 @@ public sealed class ContentV020MigrationTests : IDisposable
         Assert.Null(second.BackupPath);
         await using var connection = new SqliteConnection($"Data Source={database}");
         await connection.OpenAsync();
-        Assert.Equal("20", await ScalarAsync(connection, "SELECT value FROM settings WHERE key='schema_version';"));
+        Assert.Equal("21", await ScalarAsync(connection, "SELECT value FROM settings WHERE key='schema_version';"));
         Assert.Equal("0", await ScalarAsync(connection, "SELECT COUNT(*) FROM documents;"));
         Assert.Equal("0", await ScalarAsync(connection, "SELECT COUNT(*) FROM index_queue;"));
         Assert.Equal("0", await ScalarAsync(connection, "SELECT COUNT(*) FROM index_failures;"));

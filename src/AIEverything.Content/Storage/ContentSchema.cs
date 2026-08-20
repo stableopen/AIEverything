@@ -2,8 +2,8 @@ namespace AIEverything.Content.Storage;
 
 internal static class ContentSchema
 {
-    internal const string Version = "20";
-    internal const string PolicyVersion = "machine-text-v1";
+    internal const string Version = "21";
+    internal const string PolicyVersion = "machine-docx-blocks-v1";
 
     internal const string Sql = """
         PRAGMA journal_mode = WAL;
@@ -25,6 +25,7 @@ internal static class ContentSchema
             modified_at INTEGER NOT NULL,
             fingerprint TEXT NOT NULL,
             content TEXT NOT NULL,
+            location_map TEXT NULL,
             indexed_at INTEGER NOT NULL
         );
 
@@ -87,8 +88,8 @@ internal static class ContentSchema
         CREATE INDEX IF NOT EXISTS ix_failures_path ON index_failures(full_path);
         CREATE INDEX IF NOT EXISTS ix_scan_candidates_path ON scan_candidates(full_path);
 
-        INSERT OR REPLACE INTO settings(key, value) VALUES ('schema_version', '20');
-        INSERT OR REPLACE INTO settings(key, value) VALUES ('policy_version', 'machine-text-v1');
+        INSERT OR REPLACE INTO settings(key, value) VALUES ('schema_version', '21');
+        INSERT OR REPLACE INTO settings(key, value) VALUES ('policy_version', 'machine-docx-blocks-v1');
         INSERT OR IGNORE INTO settings(key, value) VALUES ('paused', 'false');
         INSERT OR IGNORE INTO settings(key, value) VALUES ('enabled', 'false');
         INSERT OR IGNORE INTO settings(key, value) VALUES ('disclosure_accepted', 'false');

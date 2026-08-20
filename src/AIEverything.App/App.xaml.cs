@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -7,11 +8,37 @@ namespace AIEverything.App;
 public partial class App : Application
 {
     private const string WindowTitle = "AIEverything";
+    private const string PromotionScreenshotFlag = "--render-promotion-screenshot";
     private Mutex? _instanceMutex;
     private bool _ownsInstanceMutex;
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        if (e.Args.Length > 0 &&
+            string.Equals(e.Args[0], PromotionScreenshotFlag, StringComparison.Ordinal))
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            base.OnStartup(e);
+            if (e.Args.Length != 2 ||
+                !Path.IsPathFullyQualified(e.Args[1]) ||
+                !string.Equals(Path.GetExtension(e.Args[1]), ".png", StringComparison.OrdinalIgnoreCase))
+            {
+                Shutdown(2);
+                return;
+            }
+
+            try
+            {
+                PromotionScreenshotRenderer.Render(Path.GetFullPath(e.Args[1]));
+                Shutdown(0);
+            }
+            catch
+            {
+                Shutdown(1);
+            }
+            return;
+        }
+
         _instanceMutex = new Mutex(
             initiallyOwned: true,
             name: @"Local\AIEverything.Desktop",
@@ -28,6 +55,8 @@ public partial class App : Application
 
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         base.OnStartup(e);
+        MainWindow = new MainWindow();
+        MainWindow.Show();
     }
 
     protected override void OnExit(ExitEventArgs e)

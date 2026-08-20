@@ -97,14 +97,76 @@ public sealed class StandaloneProductContractTests
     }
 
     [Fact]
-    public void V020_body_contract_names_only_txt_md_and_markdown()
+    public void V101_body_contract_names_only_txt_md_markdown_and_docx()
     {
         var policy = Read("src", "AIEverything.Content", "MachineIndex", "MachineTextIndexPolicy.cs");
         Assert.Contains("[\".txt\"]", policy);
         Assert.Contains("[\".md\"]", policy);
         Assert.Contains("[\".markdown\"]", policy);
-        foreach (var forbidden in new[] { "[\".rst\"]", "[\".pdf\"]", "[\".docx\"]", "[\".xlsx\"]", "[\".pptx\"]" })
+        Assert.Contains("[\".docx\"]", policy);
+        foreach (var forbidden in new[] { "[\".rst\"]", "[\".pdf\"]", "[\".xlsx\"]", "[\".pptx\"]" })
             Assert.DoesNotContain(forbidden, policy);
+    }
+
+    [Fact]
+    public void V101_status_and_feedback_are_short_and_actionable()
+    {
+        var main = Read("src", "AIEverything.App", "MainWindow.xaml.cs");
+        Assert.Contains("文件名搜索已就绪。开启正文索引后可搜索 Word、TXT 和 Markdown。", main, StringComparison.Ordinal);
+        Assert.Contains("正在建立正文索引，已有 {status.IndexedDocuments:N0} 个文件可搜索。", main, StringComparison.Ordinal);
+        Assert.Contains("正文索引已暂停，已有内容仍可搜索。", main, StringComparison.Ordinal);
+        Assert.Contains("文件名服务暂时不可用，正在重试；已有正文仍可搜索。", main, StringComparison.Ordinal);
+        Assert.Contains("正文索引已完成，部分文件未处理，请在设置中查看。", main, StringComparison.Ordinal);
+
+        var settings = Read("src", "AIEverything.App", "ContentSettingsWindow.xaml");
+        foreach (var id in new[] { "SettingsFailureGroupsText", "SettingsRetryFailuresButton", "SettingsReportProblemButton" })
+            Assert.Contains($"AutomationProperties.AutomationId=\"{id}\"", settings, StringComparison.Ordinal);
+        foreach (var label in new[] { "损坏", "加密/不支持", "过大", "超时", "无权限" })
+            Assert.Contains(label, settings, StringComparison.Ordinal);
+        Assert.Contains("https://github.com/stableye/AIEverything/issues/new", Read("src", "AIEverything.App", "ContentSettingsWindow.xaml.cs"), StringComparison.Ordinal);
+
+        var daemon = Read("src", "AIEverything.Daemon", "ContentDaemon.cs");
+        Assert.Contains("index.failures.retry", daemon, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void V101_promotion_screenshot_is_explicit_offline_and_checked_in()
+    {
+        var app = Read("src", "AIEverything.App", "App.xaml.cs");
+        var renderer = Read("src", "AIEverything.App", "PromotionScreenshotRenderer.cs");
+        var view = Read("src", "AIEverything.App", "PromotionScreenshotView.xaml");
+
+        Assert.Contains("--render-promotion-screenshot", app, StringComparison.Ordinal);
+        Assert.Contains("Path.IsPathFullyQualified", app, StringComparison.Ordinal);
+        Assert.DoesNotContain("StartupUri=", Read("src", "AIEverything.App", "App.xaml"), StringComparison.Ordinal);
+        Assert.Contains("MainWindow = new MainWindow();", app, StringComparison.Ordinal);
+        Assert.Contains("MainWindow.Show();", app, StringComparison.Ordinal);
+        Assert.Contains("RenderTargetBitmap", renderer, StringComparison.Ordinal);
+        Assert.Contains("PngBitmapEncoder", renderer, StringComparison.Ordinal);
+        Assert.DoesNotContain("HttpListener", renderer, StringComparison.Ordinal);
+        Assert.DoesNotContain("ContentIndexStore", renderer, StringComparison.Ordinal);
+        Assert.Contains("季度销售计划.docx", view, StringComparison.Ordinal);
+        Assert.Single(System.Text.RegularExpressions.Regex.Matches(
+            view,
+            "Text=\"季度销售计划\\.docx\"",
+            System.Text.RegularExpressions.RegexOptions.CultureInvariant)
+            .Cast<System.Text.RegularExpressions.Match>());
+        Assert.Contains("区域目标明细.docx", view, StringComparison.Ordinal);
+        Assert.Contains("销售计划 · 第 2 段", view, StringComparison.Ordinal);
+        Assert.Contains("华北区域目标", view, StringComparison.Ordinal);
+        Assert.DoesNotContain("Canary", view, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("TestCanary", view, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("C:\\Users\\", view, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("本地语义匹配", view, StringComparison.Ordinal);
+        Assert.Contains("找到 3 项 · 智能排序推荐", view, StringComparison.Ordinal);
+
+        var image = Path.Combine(Root, "docs", "images", "aieverything-1.0.1-docx.png");
+        Assert.True(File.Exists(image), image);
+        var bytes = File.ReadAllBytes(image);
+        Assert.True(bytes.Length > 20_000, $"Screenshot is unexpectedly small: {bytes.Length}");
+        Assert.Equal(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 }, bytes[..8]);
+        Assert.Equal(900, ReadBigEndianInt(bytes, 16));
+        Assert.Equal(560, ReadBigEndianInt(bytes, 20));
     }
 
     [Fact]
@@ -213,9 +275,9 @@ public sealed class StandaloneProductContractTests
             "src", "AIEverything.ExtractorWorker", "AIEverything.ExtractorWorker.csproj");
         foreach (var project in new[] { appProject, daemonProject, workerProject })
         {
-            Assert.Contains("<Version>1.0.0</Version>", project, StringComparison.Ordinal);
-            Assert.Contains("<AssemblyVersion>1.0.0.0</AssemblyVersion>", project, StringComparison.Ordinal);
-            Assert.Contains("<FileVersion>1.0.0.0</FileVersion>", project, StringComparison.Ordinal);
+            Assert.Contains("<Version>1.0.1</Version>", project, StringComparison.Ordinal);
+            Assert.Contains("<AssemblyVersion>1.0.1.0</AssemblyVersion>", project, StringComparison.Ordinal);
+            Assert.Contains("<FileVersion>1.0.1.0</FileVersion>", project, StringComparison.Ordinal);
         }
         Assert.Contains("Models\\mmarco-mMiniLMv2-L12-H384-v1", appProject, StringComparison.Ordinal);
         Assert.Contains("ExcludeFromSingleFile=\"true\"", appProject, StringComparison.Ordinal);
@@ -225,9 +287,9 @@ public sealed class StandaloneProductContractTests
             StringComparison.Ordinal);
 
         var build = Read("scripts", "build-standalone.ps1");
-        Assert.Contains("AIEverything-1.0.0-win-x64.zip", build, StringComparison.Ordinal);
-        Assert.Contains("AIEverything-V0.21-win-x64.zip", build, StringComparison.Ordinal);
-        Assert.Contains("8FC8801E143F6D20E9D68D78ECF401CCAF7C3E7CCFC8E66D2BFEE43EA10F54D2", build, StringComparison.Ordinal);
+        Assert.Contains("AIEverything-1.0.1-win-x64.zip", build, StringComparison.Ordinal);
+        Assert.Contains("AIEverything-1.0.1-win-x64.zip.sha256", build, StringComparison.Ordinal);
+        Assert.DoesNotContain("AIEverything-V0.21-win-x64.zip", build, StringComparison.Ordinal);
         Assert.Contains("Assert-ModelAssets", build, StringComparison.Ordinal);
         Assert.Contains("Assert-ZipMatchesDirectory", build, StringComparison.Ordinal);
         Assert.Contains("F143532D288194D1BF9B81486301D160ABCBC22E78FFE60D6C0C15CA7CA0DF46", build, StringComparison.Ordinal);
@@ -294,6 +356,12 @@ public sealed class StandaloneProductContractTests
         }
         Assert.DoesNotContain("AIEverything 不联网", portableReadme, StringComparison.Ordinal);
 
+        var releaseNotes = Read("docs", "releases", "1.0.1.md");
+        Assert.Contains("三步开始使用", releaseNotes, StringComparison.Ordinal);
+        Assert.Contains(".docx", releaseNotes, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("https://github.com/stableye/AIEverything/issues/new", releaseNotes, StringComparison.Ordinal);
+        Assert.Contains("AIEverything-1.0.1-win-x64.zip", Read("README.md"), StringComparison.Ordinal);
+
         var notices = Read("THIRD_PARTY_NOTICES.md");
         Assert.Contains("Microsoft.ML.OnnxRuntime` 1.29.0", notices, StringComparison.Ordinal);
         Assert.Contains("Microsoft.ML.Tokenizers` 2.0.0", notices, StringComparison.Ordinal);
@@ -301,6 +369,9 @@ public sealed class StandaloneProductContractTests
     }
 
     private static string Read(params string[] path) => File.ReadAllText(Path.Combine([Root, .. path]));
+    private static int ReadBigEndianInt(byte[] bytes, int offset) =>
+        (bytes[offset] << 24) | (bytes[offset + 1] << 16) |
+        (bytes[offset + 2] << 8) | bytes[offset + 3];
     private static string FindRoot()
     {
         var current = new DirectoryInfo(AppContext.BaseDirectory);

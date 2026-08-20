@@ -1,7 +1,7 @@
-AIEverything 1.0.0（Windows x64）
+AIEverything 1.0.1（Windows x64）
 ==============================
 
-所有文件和文件夹都可以按名称/路径搜索；TXT、MD、MARKDOWN 还可以搜索正文。
+所有文件和文件夹都可以按名称/路径搜索；DOCX、TXT、MD、MARKDOWN 还可以搜索正文。
 
 使用：
 1. 双击 AIEverything.exe。
@@ -9,7 +9,7 @@ AIEverything 1.0.0（Windows x64）
 3. 搜索结果支持预览、打开、定位和复制路径/位置引用；F5 立即同步正文。
 4. 行为排序和本地 ONNX 模型默认开启，结果行显示“最近常用 / 本地语义匹配 / AI优化”；DeepSeek 默认关闭。
 
-1.0.0 智能排序：
+1.0.1 智能排序：
 - 只作用于桌面“全部 / 文件名”；正文、CLI、MCP 不变。
 - 始终保持 Exact > Eligible > Soft；行为学习和本地模型都只处理基线前 10 项，行为最多提升 10 位，本地模型在其中选择 Top5，第 11 项以后逐项不动。
 - ONNX/CPU/运行时/超时失败会回退行为顺序，绝不因此调用云端。
@@ -17,8 +17,9 @@ AIEverything 1.0.0（Windows x64）
 - ranking.db 只保存随机盐加盐的文件键、父目录键、扩展名和 30 天每日权重聚合；不保存查询、正文、片段或明文路径。清除会删除聚合并轮换随机盐。
 
 正文范围：
-- 仅 .txt / .md / .markdown，最大 5 MiB、1,000,000 字符。
-- TXT 显示行号；Markdown 显示标题路径和行号。
+- .txt / .md / .markdown 最大 5 MiB；.docx 最大 10 MiB；每个文件最多 1,000,000 字符、处理 15 秒。
+- TXT 显示行号；Markdown 显示标题路径和行号；Word 显示标题路径、段落或表格坐标。
+- Word 暂不索引页眉页脚、批注、修订、脚注、文本框或嵌入对象，不承诺页码或自动跳转到命中位置。
 - 过滤系统/安装/缓存/依赖/构建目录和整个代码仓库。
 - 过滤只影响正文；所有格式和代码仓库仍可按文件名找到。
 - Everything 不可用时不会递归爬全盘，已有正文结果保持不变并等待重试。
@@ -32,5 +33,7 @@ AIEverything 1.0.0（Windows x64）
 
 除上述用户显式开启的可选复排外，搜索与排序不联网。AIEverything 不会修改、删除或移动用户文件。
 
-1.0.0 没有 Outlook、Local Import、剪贴板、Inbox、Teams/WeChat 或手工目录入口。
-PDF、DOCX、RST、XLSX、PPTX 正文支持不在本版范围。
+1.0.1 没有 Outlook、Local Import、剪贴板、Inbox、Teams/WeChat 或手工目录入口。
+PDF、旧版 DOC、RST、XLSX、PPTX 正文支持不在本版范围。
+
+反馈：https://github.com/stableye/AIEverything/issues/new
